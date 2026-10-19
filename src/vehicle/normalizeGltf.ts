@@ -104,6 +104,7 @@ export function normalizeGltfVehicle(scene: Object3D, source: GltfSource): Vehic
     provenance: {
       kind: 'gltf',
       name: source.name,
+      displayName: source.displayName,
       license: source.license,
       licenseUrl: source.licenseUrl,
       author: source.author,
