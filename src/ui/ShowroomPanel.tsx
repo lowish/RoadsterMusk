@@ -45,7 +45,7 @@ export function ShowroomPanel() {
   return (
     <aside className={`showroom-panel ${open ? 'is-open' : ''}`} aria-label="Showroom customisation">
       <button type="button" className="panel-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <span className="sec-label">SEC_02 // CONFIGURE</span>
+        <span className="sec-label">CONFIGURE</span>
         <span className="panel-toggle-icon" aria-hidden>
           {open ? '−' : '+'}
         </span>
