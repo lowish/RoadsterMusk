@@ -12,12 +12,11 @@ import { KeyHints } from './KeyHints';
 import { TelemetryPanel } from './TelemetryPanel';
 import { TouchFlightControls } from './TouchFlightControls';
 import { useKeyboardFlight } from '../input/useKeyboardFlight';
+import { DocsButton } from './DocsModal';
+import { ModelCredit } from './ModelCredit';
 import { ShowroomPanel } from './ShowroomPanel';
 
-/**
- * Model provenance. For a licensed GLB this is the creator credit the licence
- * requires (CC BY 4.0: title, author, licence, source), kept to one quiet line.
- */
+/** Which model is on show. The licence credit lives in the footer (ModelCredit). */
 function ModelBadge() {
   const vehicle = useAppStore((s) => s.vehicle);
   const { progress, active } = useProgress();
@@ -29,38 +28,11 @@ function ModelBadge() {
       </div>
     );
   }
-  const { provenance: p, dimensions: d, parts } = vehicle;
+  const p = vehicle.provenance;
   return (
     <div className="model-badge">
       <span className="sec-label">MODEL</span>
-      <span className="badge-title">
-        {p.sourceUrl ? (
-          <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer">
-            {p.name}
-          </a>
-        ) : (
-          p.name
-        )}
-      </span>
-      <span className="badge-meta badge-meta--keep">
-        {p.kind === 'placeholder' ? (
-          'PROCEDURAL PLACEHOLDER'
-        ) : (
-          <>
-            {p.author} ·{' '}
-            {p.licenseUrl ? (
-              <a href={p.licenseUrl} target="_blank" rel="noopener noreferrer">
-                {p.license}
-              </a>
-            ) : (
-              p.license
-            )}
-          </>
-        )}
-      </span>
-      <span className="badge-meta">
-        {d.length.toFixed(2)}×{d.width.toFixed(2)}×{d.height.toFixed(2)} M · {parts.length} PART{parts.length === 1 ? '' : 'S'}
-      </span>
+      <span className="badge-title">{p.displayName ?? p.name}</span>
     </div>
   );
 }
@@ -119,7 +91,6 @@ export function Hud() {
 
       <header className="hud-top">
         <div className="wordmark">
-          <span className="sec-label">SEC_00 // BEYOND_THE_ROAD</span>
           <span className="wordmark-name">ROADSTERMUSK</span>
         </div>
         {!cinematic && (
@@ -128,7 +99,13 @@ export function Hud() {
             <EnvironmentSwitch />
           </div>
         )}
-        <ModelBadge />
+        {/* Cinematic keeps only the wordmark up here. */}
+        {!cinematic && (
+          <div className="top-right">
+            <ModelBadge />
+            <DocsButton />
+          </div>
+        )}
       </header>
 
       {!cinematic && !engineering && <FlightConsole />}
@@ -138,23 +115,30 @@ export function Hud() {
       {flying && (coarsePointer ? <TouchFlightControls /> : <KeyHints />)}
       {cinematic && <CinematicCaption />}
 
-      <footer className="hud-bottom">
-        {!cinematic && parked && (
-          <div className="footer-camera">
-            <span className="sec-label">SEC_03 // CAMERA</span>
-            <CameraPresetBar showCinematic={!engineering} />
-          </div>
-        )}
-        <div className="hud-footline">
-          <p className="hud-disclaimer">
-            FICTIONAL FLIGHT CONCEPT — NOT A CAPABILITY OF ANY REAL VEHICLE. FAN PROJECT; NOT AFFILIATED WITH TESLA, INC.
-          </p>
-          {(parked || vehicleState === 'HOVERING') && (
-            <p className="hud-hint">DRAG ORBIT · SCROLL ZOOM · RIGHT-DRAG PAN</p>
+      {/* Cinematic hides the whole footer (cameras, legal, hints, graphics); the caption and EXIT take its place. */}
+      {!cinematic && (
+        <footer className="hud-bottom">
+          {parked && (
+            <div className="footer-camera">
+              <span className="sec-label">CAMERA</span>
+              <CameraPresetBar showCinematic={!engineering} />
+            </div>
           )}
-          {!cinematic && <QualitySelect />}
-        </div>
-      </footer>
+          <div className="hud-footline">
+            {/* Disclaimer and licence credit stacked, so each keeps full-length lines. */}
+            <div className="hud-legal">
+              <p className="hud-disclaimer">
+                FICTIONAL FLIGHT CONCEPT — NOT A CAPABILITY OF ANY REAL VEHICLE. FAN PROJECT; NOT AFFILIATED WITH TESLA, INC.
+              </p>
+              <ModelCredit />
+            </div>
+            {(parked || vehicleState === 'HOVERING') && (
+              <p className="hud-hint">DRAG ORBIT · SCROLL ZOOM · RIGHT-DRAG PAN</p>
+            )}
+            <QualitySelect />
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
