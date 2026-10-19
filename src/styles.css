@@ -1,0 +1,1527 @@
+/*
+ * ROADSTERMUSK — Vehicle Lab
+ * Technical-brutalist HUD: matte #0a0a0a, edge-anchored rectangular panels,
+ * 1px dark rules, zero radius, monospace section labels, safety-orange accent.
+ */
+
+:root {
+  --bg: #0a0a0a;
+  --panel: rgba(10, 10, 10, 0.94);
+  --line: #262626;
+  --line-strong: #3d3d3d;
+  --fg: #f2f2f2;
+  --muted: #8c8c8c;
+  --dim: #5c5c5c;
+  --accent: #ff5f00;
+  --accent-ink: #0a0a0a;
+  --plasma: #e6e6e6; /* neutral signal white: no cyan anywhere in the UI or scene */
+  --warn: #ffb347;
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'JetBrains Mono', 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+  --bar-h: 56px;
+  --rail-w: 300px;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-radius: 0;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  text-decoration-color: var(--accent);
+}
+
+kbd {
+  font-family: var(--mono);
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.app {
+  position: fixed;
+  inset: 0;
+}
+
+.scene-canvas {
+  position: absolute !important;
+  inset: 0;
+  touch-action: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Primitives                                                          */
+/* ------------------------------------------------------------------ */
+
+.sec-label {
+  font: 500 10px/1.2 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.panel-tag {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--accent);
+}
+
+/* HUD overlay: transparent to pointer events except its controls. Above in-scene HTML labels. */
+.hud {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.hud-top,
+.hud-bottom,
+.flight-console,
+.showroom-panel,
+.telemetry,
+.key-hints,
+.cinematic-caption {
+  pointer-events: auto;
+}
+
+/* ------------------------------------------------------------------ */
+/* Top bar                                                             */
+/* ------------------------------------------------------------------ */
+
+.hud-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: var(--bar-h);
+  display: grid;
+  grid-template-columns: var(--rail-w) 1fr var(--rail-w);
+  align-items: stretch;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.wordmark {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 14px;
+  border-right: 1px solid var(--line);
+}
+
+.wordmark-name {
+  font: 700 15px/1 var(--font);
+  letter-spacing: 0.3em;
+}
+
+.hud-switches {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
+.mode-tabs {
+  display: flex;
+  border: 1px solid var(--line-strong);
+}
+
+.mode-tab {
+  appearance: none;
+  border: 0;
+  border-right: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--muted);
+  font: 500 11px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+
+.mode-tab:last-child {
+  border-right: 0;
+}
+
+.mode-tab:hover:not(:disabled) {
+  color: var(--fg);
+  background: #141414;
+}
+
+.mode-tab[aria-selected='true'],
+.mode-tab[aria-checked='true'] {
+  color: var(--accent-ink);
+  background: var(--fg);
+}
+
+.mode-tab:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.model-badge {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-content: center;
+  padding: 8px 14px;
+  border-left: 1px solid var(--line);
+  font-size: 12px;
+  min-width: 0;
+}
+
+.model-badge > .sec-label {
+  grid-row: span 3;
+  align-self: start;
+  padding-top: 2px;
+  color: var(--accent);
+}
+
+.badge-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge-meta {
+  font: 400 10px/1.35 var(--mono);
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------------ */
+/* Rails (edge-anchored panels)                                        */
+/* ------------------------------------------------------------------ */
+
+.flight-console,
+.showroom-panel,
+.key-hints {
+  position: absolute;
+  top: var(--bar-h);
+  width: var(--rail-w);
+  max-height: calc(100% - var(--bar-h) - 64px);
+  overflow-y: auto;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.flight-console {
+  left: 0;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+}
+
+.showroom-panel,
+.key-hints {
+  right: 0;
+  border-left: 1px solid var(--line);
+}
+
+/* ---------- Flight console ---------- */
+
+.state-track {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+
+.state-step {
+  font: 500 9px var(--mono);
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  padding: 7px 4px;
+  text-align: center;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.state-step:nth-child(3n) {
+  border-right: 0;
+}
+
+.state-step:nth-last-child(-n + 3) {
+  border-bottom: 0;
+}
+
+.state-step[aria-current='step'] {
+  color: var(--accent-ink);
+  background: var(--plasma);
+}
+
+.flight-console[data-state='PARKED'] .state-step[aria-current='step'] {
+  background: var(--fg);
+}
+
+.console-status {
+  padding: 14px 14px 10px;
+}
+
+.console-state {
+  font: 700 18px/1 var(--mono);
+  letter-spacing: 0.08em;
+}
+
+.console-copy {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.console-progress {
+  height: 2px;
+  margin: 0 14px 12px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.console-progress-fill {
+  height: 100%;
+  background: var(--plasma);
+  transform-origin: left;
+}
+
+.console-actions {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+
+.console-actions--row {
+  flex-direction: row;
+}
+
+.console-actions--row .console-action {
+  flex: 1;
+}
+
+.console-actions--row .console-action + .console-action {
+  border-left: 1px solid var(--line);
+}
+
+.console-action {
+  appearance: none;
+  border: 0;
+  padding: 14px;
+  font: 600 12px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.console-action:hover:not(:disabled) {
+  background: var(--fg);
+}
+
+.console-action--plasma {
+  background: var(--plasma);
+}
+
+.console-action--quiet {
+  background: transparent;
+  color: var(--fg);
+}
+
+.console-action--quiet:hover:not(:disabled) {
+  background: #161616;
+}
+
+.console-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.console-action kbd {
+  float: right;
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.console-warning {
+  margin: 0;
+  padding: 8px 14px;
+  font: 500 10px var(--mono);
+  letter-spacing: 0.06em;
+  color: var(--warn);
+  border-top: 1px solid var(--line);
+}
+
+.console-note {
+  margin: 0;
+  padding: 10px 14px;
+  font: 400 10px/1.4 var(--mono);
+  color: var(--dim);
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- Configure / Inspect rail ---------- */
+
+.panel-toggle {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.panel-toggle .sec-label {
+  color: var(--accent);
+}
+
+.panel-toggle-icon {
+  font: 400 14px var(--mono);
+  color: var(--muted);
+}
+
+.panel-body {
+  border-top: 1px solid var(--line);
+}
+
+.panel-section {
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-section:last-child {
+  border-bottom: 0;
+}
+
+.panel-heading {
+  margin: 0 0 10px;
+  display: flex;
+  justify-content: space-between;
+  font: 500 10px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.panel-value {
+  color: var(--fg);
+  letter-spacing: 0.06em;
+}
+
+.panel-subheading {
+  margin: 14px 0 6px;
+  font: 500 10px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.panel-note {
+  margin: 8px 0 0;
+  font: 400 10px/1.45 var(--mono);
+  color: var(--dim);
+}
+
+/* A footnote directly in the panel body gets section padding. */
+.panel-body > .panel-note {
+  margin: 0;
+  padding: 10px 14px;
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  border: 1px solid var(--line);
+}
+
+.swatch {
+  appearance: none;
+  aspect-ratio: 1;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--bg);
+  background: var(--swatch);
+  /* Faint inner edge so dark paints stay visible on the dark panel. */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  cursor: pointer;
+}
+
+.swatch:last-child {
+  border-right: 0;
+}
+
+.swatch[aria-checked='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 3px var(--bg);
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--line-strong);
+}
+
+.segmented-option {
+  appearance: none;
+  flex: 1 1 0;
+  border: 0;
+  border-right: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--muted);
+  font: 500 10px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 9px 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.segmented-option:last-child {
+  border-right: 0;
+}
+
+.segmented-option:hover {
+  color: var(--fg);
+}
+
+.segmented-option[aria-checked='true'] {
+  background: var(--fg);
+  color: var(--accent-ink);
+}
+
+/* ---------- Engineering ---------- */
+
+.toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 500 11px var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-track {
+  width: 28px;
+  height: 14px;
+  flex: none;
+  border: 1px solid var(--line-strong);
+  position: relative;
+}
+
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: var(--muted);
+  transition: transform 0.15s;
+}
+
+.toggle input:checked + .toggle-track {
+  border-color: var(--accent);
+}
+
+.toggle input:checked + .toggle-track::after {
+  transform: translateX(14px);
+  background: var(--accent);
+}
+
+.toggle input:focus-visible + .toggle-track {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.slider {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.slider:disabled {
+  opacity: 0.35;
+}
+
+.part-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+}
+
+.part-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.part-row {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  font: 500 12px var(--font);
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.part-row:hover,
+.part-row[data-hovered] {
+  background: #141414;
+}
+
+.part-row[aria-pressed='true'] {
+  box-shadow: inset 2px 0 0 var(--accent);
+  background: #151008;
+}
+
+.role-tag {
+  font: 500 9px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 2px 5px;
+  border: 1px solid var(--line-strong);
+  flex: none;
+}
+
+.role-tag--concept {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.inspector {
+  border: 1px solid var(--line-strong);
+  padding: 10px;
+}
+
+.inspector-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.inspector-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 11px;
+}
+
+.inspector-grid dt {
+  font: 500 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.inspector-grid dd {
+  margin: 0;
+  font-family: var(--mono);
+  word-break: break-word;
+}
+
+.inspector-sub {
+  color: var(--muted);
+}
+
+.inspector-note {
+  margin: 8px 0 0;
+  font: 400 10px/1.45 var(--mono);
+  color: var(--warn);
+}
+
+.text-button {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: 500 11px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 0 0;
+  cursor: pointer;
+}
+
+/* In-scene part label (drei <Html>, rendered outside the HUD). */
+.part-label {
+  white-space: nowrap;
+  font: 600 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  padding: 4px 7px;
+  pointer-events: none;
+}
+
+.part-label-tag {
+  margin-left: 6px;
+  color: var(--warn);
+}
+
+/* ------------------------------------------------------------------ */
+/* Telemetry + flight input                                            */
+/* ------------------------------------------------------------------ */
+
+/* Spans exactly the gap between the two rails, under the top bar. */
+.telemetry {
+  position: absolute;
+  top: var(--bar-h);
+  left: var(--rail-w);
+  right: var(--rail-w);
+  display: flex;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 0;
+  font-family: var(--mono);
+}
+
+.telemetry-tag {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  color: var(--accent);
+  border-right: 1px solid var(--line);
+}
+
+.telemetry-item {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  min-width: 0;
+  border-right: 1px solid var(--line);
+}
+
+.telemetry-item:last-child {
+  border-right: 0;
+}
+
+.telemetry-label {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+.telemetry-value {
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.telemetry-unit {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-left: 3px;
+}
+
+.telemetry-item--thrust {
+  justify-content: space-between;
+}
+
+.thrust-bar {
+  height: 6px;
+  margin-bottom: 4px;
+  border: 1px solid var(--line-strong);
+}
+
+.thrust-bar-fill {
+  height: 100%;
+  background: var(--plasma);
+  transform-origin: left;
+  transition: transform 0.1s linear;
+}
+
+.key-hints dl {
+  margin: 0;
+}
+
+.key-hint {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.key-hint:last-child {
+  border-bottom: 0;
+}
+
+.key-hint dt,
+.key-hint dd {
+  margin: 0;
+}
+
+.key-hint dd {
+  color: var(--muted);
+}
+
+.key-hint kbd {
+  font: 600 11px var(--mono);
+}
+
+.touch-controls {
+  pointer-events: none;
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.thumbstick {
+  pointer-events: auto;
+  touch-action: none;
+  width: 128px;
+  height: 128px;
+  border: 1px solid var(--line-strong);
+  background: rgba(10, 10, 10, 0.6);
+  display: grid;
+  place-items: center;
+}
+
+.thumbstick-knob {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--plasma);
+  background: rgba(127, 216, 255, 0.25);
+}
+
+.climb-buttons {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+}
+
+.climb-button {
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  width: 64px;
+  height: 56px;
+  border: 0;
+  background: rgba(10, 10, 10, 0.75);
+  font-size: 16px;
+}
+
+.climb-button + .climb-button {
+  border-top: 1px solid var(--line-strong);
+}
+
+.climb-button:active {
+  background: var(--plasma);
+  color: var(--accent-ink);
+}
+
+/* ------------------------------------------------------------------ */
+/* Bottom bar                                                          */
+/* ------------------------------------------------------------------ */
+
+.hud-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  min-height: 52px;
+  flex-wrap: wrap;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.footer-camera {
+  display: flex;
+  align-items: stretch;
+  /* The camera bar never gives way to the footnotes. */
+  flex: none;
+  max-width: 100%;
+}
+
+.footer-camera > .sec-label {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  color: var(--accent);
+  border-right: 1px solid var(--line);
+}
+
+.preset-bar {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.preset-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.preset-button {
+  appearance: none;
+  flex: none;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: 500 11px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preset-button:hover {
+  color: var(--fg);
+  background: #141414;
+}
+
+.preset-button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.preset-divider {
+  display: none;
+}
+
+.rec-dot {
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+}
+
+.preset-button--cinematic[aria-pressed='true'] .rec-dot {
+  animation: rec-blink 1s steps(2) infinite;
+}
+
+@keyframes rec-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.hud-footline {
+  display: flex;
+  /* Wraps onto its own row rather than squeezing the safety disclaimer into a column. */
+  flex: 1 1 520px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 6px 14px;
+  min-width: 0;
+}
+
+.hud-disclaimer,
+.hud-hint {
+  margin: 0;
+  font: 400 9px/1.4 var(--mono);
+  letter-spacing: 0.08em;
+  color: var(--dim);
+}
+
+.hud-disclaimer {
+  max-width: 420px;
+}
+
+.quality-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 500 10px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex: none;
+}
+
+.quality-select select {
+  appearance: none;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  font: 500 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ */
+/* Cinematic + transitions                                             */
+/* ------------------------------------------------------------------ */
+
+.letterbox {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  background: #000;
+  transition: height 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.letterbox--top {
+  top: 0;
+}
+
+.letterbox--bottom {
+  bottom: 0;
+}
+
+.hud--cinematic .letterbox {
+  height: 10vh;
+}
+
+.hud--cinematic .hud-top {
+  z-index: 1;
+}
+
+.hud--cinematic .model-badge .badge-meta:not(.badge-meta--keep) {
+  display: none;
+}
+
+.cinematic-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 52px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px;
+  z-index: 1;
+  animation: caption-in 0.8s 0.3s both;
+}
+
+.cinematic-caption .sec-label {
+  color: var(--accent);
+}
+
+.caption-sub {
+  margin-top: 6px;
+  font: 600 14px var(--font);
+  letter-spacing: 0.06em;
+}
+
+.caption-exit {
+  appearance: none;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  font: 600 11px var(--mono);
+  letter-spacing: 0.12em;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 10px;
+}
+
+.caption-exit kbd {
+  color: var(--muted);
+}
+
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.reset-fade {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  pointer-events: none;
+  z-index: 5;
+  animation: reset-fade 0.7s ease-out forwards;
+}
+
+@keyframes reset-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Medium widths: tighter rails                                        */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 1100px) and (min-width: 721px) {
+  :root {
+    --rail-w: 260px;
+  }
+  .hud-hint,
+  .telemetry-tag {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Narrow screens: one stacked column (header → config → car → console */
+/* → camera). Panels flow in order, so real heights are respected.     */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 720px) {
+  .hud {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hud-top,
+  .hud-bottom,
+  .flight-console,
+  .showroom-panel,
+  .telemetry,
+  .key-hints,
+  .cinematic-caption {
+    position: relative;
+    inset: auto;
+    transform: none;
+    width: auto;
+    max-height: none;
+  }
+
+  .hud-top {
+    order: 0;
+    grid-template-columns: 1fr auto;
+    padding-top: env(safe-area-inset-top);
+  }
+  .wordmark {
+    padding: 10px 12px;
+  }
+  .hud-switches {
+    grid-column: 1 / -1;
+    order: 3;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .hud-switches .mode-tabs {
+    flex: 1;
+    border: 0;
+    border-right: 1px solid var(--line);
+  }
+  .hud-switches .mode-tabs:last-child {
+    border-right: 0;
+  }
+  .hud-switches .mode-tab {
+    flex: 1;
+    padding: 9px 6px;
+  }
+  .model-badge {
+    max-width: 56vw;
+    padding: 8px 12px;
+  }
+  /* The licence credit must stay fully readable: wrap instead of truncating. */
+  .model-badge .badge-title,
+  .model-badge .badge-meta--keep {
+    white-space: normal;
+    overflow: visible;
+  }
+  .model-badge .badge-meta:not(.badge-meta--keep) {
+    display: none;
+  }
+
+  .showroom-panel {
+    order: 1;
+    border-left: 0;
+  }
+  .showroom-panel .panel-body {
+    max-height: 34vh;
+    overflow-y: auto;
+  }
+  .telemetry {
+    order: 2;
+    border-left: 0;
+    border-right: 0;
+    overflow-x: auto;
+  }
+  .telemetry-tag,
+  .telemetry-item--thrust {
+    display: none;
+  }
+  .telemetry-item {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+  }
+  .telemetry-value {
+    font-size: 14px;
+  }
+
+  /* The car shows in the gap; the console sits on the bottom stack. */
+  .flight-console {
+    order: 4;
+    margin-top: auto;
+    border-right: 0;
+    border-top: 1px solid var(--line);
+  }
+  .flight-console .panel-tag,
+  .flight-console .state-track,
+  .flight-console .console-note {
+    display: none;
+  }
+  .console-status {
+    padding: 10px 12px 8px;
+  }
+  .console-state {
+    font-size: 15px;
+  }
+  .hud[data-state='FLIGHT'] .console-actions {
+    flex-direction: row;
+  }
+  .hud[data-state='FLIGHT'] .console-status {
+    display: none;
+  }
+
+  .key-hints {
+    display: none;
+  }
+
+  .cinematic-caption {
+    order: 5;
+    margin-top: auto;
+  }
+
+  .hud-bottom {
+    order: 6;
+    flex-direction: column;
+  }
+  .footer-camera {
+    border-bottom: 1px solid var(--line);
+  }
+  .footer-camera > .sec-label {
+    display: none;
+  }
+  .preset-button {
+    padding: 13px 14px;
+  }
+  .hud-footline {
+    /* The wide-screen flex-basis is a width; in this vertical stack it would become a height. */
+    flex: none;
+    justify-content: space-between;
+    padding: 6px 12px;
+  }
+  .hud-hint {
+    display: none;
+  }
+  .hud--cinematic .letterbox {
+    height: 6vh;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Stunt Showcase (SEC_06)                                             */
+/* ------------------------------------------------------------------ */
+
+.stunt-tabs,
+.stunt-telemetry {
+  pointer-events: auto;
+}
+
+.stunt-tabs {
+  position: absolute;
+  top: var(--bar-h);
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.stunt-tab {
+  appearance: none;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.stunt-tab:last-child {
+  border-right: 0;
+}
+
+.stunt-tab-index {
+  font: 500 11px var(--mono);
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.stunt-tab-label {
+  font: 700 15px var(--font);
+  letter-spacing: 0.08em;
+}
+
+.stunt-tab:hover {
+  color: var(--fg);
+  background: #141414;
+}
+
+.stunt-tab[aria-selected='true'] {
+  background: var(--fg);
+  color: var(--accent-ink);
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+
+.stunt-tab[aria-selected='true'] .stunt-tab-index {
+  color: var(--accent-ink);
+}
+
+/* Editorial title, top-left under the tabs; the centre of the stage stays clear for the car. */
+.stunt-title {
+  position: absolute;
+  left: 0;
+  top: calc(var(--bar-h) + 50px);
+  max-width: min(46vw, 760px);
+  padding: 22px 28px 0;
+  pointer-events: none;
+  animation: stunt-title-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.stunt-title .sec-label {
+  color: var(--accent);
+}
+
+.stunt-title h1 {
+  margin: 12px 0 14px;
+  font: 800 clamp(28px, 4.4vw, 72px) / 0.92 var(--font);
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  color: var(--fg);
+  text-wrap: balance;
+}
+
+.stunt-title p {
+  margin: 0;
+  max-width: 520px;
+  padding-left: 12px;
+  border-left: 2px solid var(--accent);
+  font: 400 12px/1.5 var(--mono);
+  color: var(--muted);
+}
+
+@keyframes stunt-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Technical telemetry box, bottom right. */
+.stunt-telemetry {
+  position: absolute;
+  right: 0;
+  bottom: 41px;
+  width: 340px;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+}
+
+.stunt-telemetry dl {
+  margin: 0;
+}
+
+.stunt-telemetry-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+}
+
+.stunt-telemetry-row dt {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+.stunt-telemetry-row dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.stunt-telemetry-row.is-hot dd {
+  color: var(--accent);
+}
+
+.stunt-telemetry-note {
+  margin: 0;
+  padding: 8px 14px;
+  font: 400 9px/1.4 var(--mono);
+  letter-spacing: 0.08em;
+  color: var(--dim);
+}
+
+.stunt-footer {
+  justify-content: center;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+.stunt-footer .hud-disclaimer {
+  max-width: none;
+}
+
+@media (max-width: 1100px) and (min-width: 721px) {
+  .stunt-tab {
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+  }
+  .stunt-telemetry {
+    width: 290px;
+  }
+}
+
+@media (max-width: 720px) {
+  .stunt-tabs,
+  .stunt-title,
+  .stunt-telemetry {
+    position: relative;
+    inset: auto;
+    width: auto;
+    max-width: none;
+  }
+  .stunt-tabs {
+    order: 1;
+  }
+  .stunt-tab {
+    flex-direction: column;
+    gap: 3px;
+    padding: 9px 8px;
+  }
+  .stunt-tab-label {
+    font-size: 12px;
+  }
+  .stunt-title {
+    order: 2;
+    margin-top: auto;
+    padding: 0 14px 14px;
+  }
+  .stunt-title h1 {
+    font-size: clamp(26px, 9vw, 40px);
+  }
+  .stunt-telemetry {
+    order: 3;
+    border-left: 0;
+  }
+  .stunt-telemetry .panel-tag,
+  .stunt-telemetry-note {
+    display: none;
+  }
+  .stunt-telemetry dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .stunt-telemetry-row:first-child {
+    grid-column: 1 / -1;
+  }
+  .stunt-telemetry-row:nth-child(even) {
+    border-right: 1px solid var(--line);
+  }
+  .stunt-footer {
+    order: 4;
+  }
+}
+
+.section-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}

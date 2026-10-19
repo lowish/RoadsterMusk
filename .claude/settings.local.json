@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vite *)",
+      "Bash(npm run *)",
+      "Bash(npm pkg *)",
+      "Bash(npx vitest *)",
+      "Bash(npm test *)",
+      "WebFetch(domain:sketchfab.com)",
+      "WebFetch(domain:api.sketchfab.com)",
+      "WebFetch(domain:help.sketchfab.com)",
+      "Bash(node scripts/inspect-glb.mjs \"public/models/tesla-roadtser-2026/source/tesla roadtser 2026.glb\")",
+      "Bash(node -e ' *)",
+      "Bash(grep -vE '^\\\\$|^$|\\\\}')",
+      "Bash(npm view *)",
+      "Bash(python -)",
+      "Bash(sed -i \"s/  --plasma: #7fd8ff;/  --plasma: #e6e6e6; \\\\/* neutral signal white: no cyan anywhere in the UI or scene *\\\\//\" src/styles.css)",
+      "Bash(sed -i \"/^export const PLASMA = '#7fd8ff';$/d\" src/ui/theme.ts)",
+      "Bash(sed -i \"s#  /\\\\*\\\\* Rear exhaust \\(vertical climb\\), 0..1. \\\\*/#  /** Climb boost \\(vertical climb\\), 0..1: drives the under-floor jets as hard as \\\\`smoke\\\\` does. */#; s#// 04 90° CLIMB: pitch to vertical, rear-thruster climb, hammerhead over the#// 04 90° CLIMB: pitch to vertical, full-thrust climb, hammerhead over the#\" src/stunts/routines.ts)",
+      "Bash(sed -i \"s#it\\('90° climb goes vertical on the rear thrusters and climbs'#it\\('90° climb goes vertical on full climb boost and climbs'#\" src/stunts/routines.test.ts)"
+    ]
+  }
+}
