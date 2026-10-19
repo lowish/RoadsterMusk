@@ -19,7 +19,10 @@
       "Bash(sed -i \"s/  --plasma: #7fd8ff;/  --plasma: #e6e6e6; \\\\/* neutral signal white: no cyan anywhere in the UI or scene *\\\\//\" src/styles.css)",
       "Bash(sed -i \"/^export const PLASMA = '#7fd8ff';$/d\" src/ui/theme.ts)",
       "Bash(sed -i \"s#  /\\\\*\\\\* Rear exhaust \\(vertical climb\\), 0..1. \\\\*/#  /** Climb boost \\(vertical climb\\), 0..1: drives the under-floor jets as hard as \\\\`smoke\\\\` does. */#; s#// 04 90° CLIMB: pitch to vertical, rear-thruster climb, hammerhead over the#// 04 90° CLIMB: pitch to vertical, full-thrust climb, hammerhead over the#\" src/stunts/routines.ts)",
-      "Bash(sed -i \"s#it\\('90° climb goes vertical on the rear thrusters and climbs'#it\\('90° climb goes vertical on full climb boost and climbs'#\" src/stunts/routines.test.ts)"
+      "Bash(sed -i \"s#it\\('90° climb goes vertical on the rear thrusters and climbs'#it\\('90° climb goes vertical on full climb boost and climbs'#\" src/stunts/routines.test.ts)",
+      "Bash(python \"C:/Users/William/AppData/Local/Temp/claude/D--RoadsterMusk/80cf5381-b6cc-4213-87f1-848afedc6d21/scratchpad/readme_ui.py\")",
+      "Bash(python \"C:/Users/William/AppData/Local/Temp/claude/D--RoadsterMusk/80cf5381-b6cc-4213-87f1-848afedc6d21/scratchpad/footer_legal.py\" .)",
+      "Bash(python \"C:/Users/William/AppData/Local/Temp/claude/D--RoadsterMusk/80cf5381-b6cc-4213-87f1-848afedc6d21/scratchpad/docs_wire.py\" .)"
     ]
   }
 }
