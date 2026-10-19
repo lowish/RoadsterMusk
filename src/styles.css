@@ -10,8 +10,11 @@
   --line: #262626;
   --line-strong: #3d3d3d;
   --fg: #f2f2f2;
-  --muted: #8c8c8c;
-  --dim: #5c5c5c;
+  /* Greys, lifted for legibility on #0a0a0a (all comfortably above WCAG AA). */
+  --muted: #c0c0c0; /* secondary text: labels, sublines, metadata */
+  --dim: #a8a8a8; /* tertiary: disclaimers, notes, hints */
+  --inactive: #aaaaaa; /* unselected tabs, buttons and state steps */
+  --text-lift: 0 0 2px rgba(255, 255, 255, 0.15); /* soft glow under small text */
   --accent: #ff5f00;
   --accent-ink: #0a0a0a;
   --plasma: #e6e6e6; /* neutral signal white: no cyan anywhere in the UI or scene */
@@ -84,8 +87,28 @@ input {
 /* Primitives                                                          */
 /* ------------------------------------------------------------------ */
 
+/* Small secondary text: a soft glow lifts it off the dark background. */
+.sec-label,
+.badge-meta,
+.state-step,
+.console-copy,
+.console-note,
+.panel-note,
+.inspector-note,
+.role-tag,
+.telemetry-label,
+.telemetry-unit,
+.stunt-title p,
+.stunt-telemetry-row dt,
+.stunt-telemetry-note,
+.hud-disclaimer,
+.hud-hint,
+.hud-credit {
+  text-shadow: var(--text-lift);
+}
+
 .sec-label {
-  font: 500 10px/1.2 var(--mono);
+  font: 500 11px/1.2 var(--mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
@@ -144,7 +167,8 @@ input {
 
 .wordmark-name {
   font: 700 15px/1 var(--font);
-  letter-spacing: 0.3em;
+  /* Mild tracking only. */
+  letter-spacing: 0.06em;
 }
 
 .hud-switches {
@@ -165,8 +189,8 @@ input {
   border: 0;
   border-right: 1px solid var(--line-strong);
   background: transparent;
-  color: var(--muted);
-  font: 500 11px var(--mono);
+  color: var(--inactive);
+  font: 500 12px var(--mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 9px 14px;
@@ -220,9 +244,9 @@ input {
 }
 
 .badge-meta {
-  font: 400 10px/1.35 var(--mono);
+  font: 400 12px/1.35 var(--mono);
   color: var(--muted);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -269,9 +293,9 @@ input {
 }
 
 .state-step {
-  font: 500 9px var(--mono);
+  font: 500 11px var(--mono);
   letter-spacing: 0.1em;
-  color: var(--dim);
+  color: var(--inactive);
   padding: 7px 4px;
   text-align: center;
   border-right: 1px solid var(--line);
@@ -385,7 +409,7 @@ input {
 .console-warning {
   margin: 0;
   padding: 8px 14px;
-  font: 500 10px var(--mono);
+  font: 500 12px var(--mono);
   letter-spacing: 0.06em;
   color: var(--warn);
   border-top: 1px solid var(--line);
@@ -394,9 +418,10 @@ input {
 .console-note {
   margin: 0;
   padding: 10px 14px;
-  font: 400 10px/1.4 var(--mono);
+  font: 400 12px/1.45 var(--mono);
   color: var(--dim);
   border-top: 1px solid var(--line);
+  letter-spacing: 0.05em;
 }
 
 /* ---------- Configure / Inspect rail ---------- */
@@ -439,7 +464,7 @@ input {
   margin: 0 0 10px;
   display: flex;
   justify-content: space-between;
-  font: 500 10px var(--mono);
+  font: 500 11px var(--mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
@@ -452,7 +477,7 @@ input {
 
 .panel-subheading {
   margin: 14px 0 6px;
-  font: 500 10px var(--mono);
+  font: 500 11px var(--mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--dim);
@@ -460,8 +485,9 @@ input {
 
 .panel-note {
   margin: 8px 0 0;
-  font: 400 10px/1.45 var(--mono);
+  font: 400 12px/1.5 var(--mono);
   color: var(--dim);
+  letter-spacing: 0.05em;
 }
 
 /* A footnote directly in the panel body gets section padding. */
@@ -510,8 +536,8 @@ input {
   border: 0;
   border-right: 1px solid var(--line-strong);
   background: transparent;
-  color: var(--muted);
-  font: 500 10px var(--mono);
+  color: var(--inactive);
+  font: 500 11px var(--mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 9px 4px;
@@ -544,7 +570,7 @@ input {
   display: flex;
   align-items: center;
   gap: 10px;
-  font: 500 11px var(--mono);
+  font: 500 12px var(--mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
@@ -635,7 +661,7 @@ input {
 }
 
 .role-tag {
-  font: 500 9px var(--mono);
+  font: 500 11px var(--mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -668,7 +694,7 @@ input {
 }
 
 .inspector-grid dt {
-  font: 500 10px var(--mono);
+  font: 500 11px var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -686,8 +712,9 @@ input {
 
 .inspector-note {
   margin: 8px 0 0;
-  font: 400 10px/1.45 var(--mono);
+  font: 400 12px/1.5 var(--mono);
   color: var(--warn);
+  letter-spacing: 0.05em;
 }
 
 .text-button {
@@ -695,7 +722,7 @@ input {
   border: 0;
   background: none;
   color: var(--accent);
-  font: 500 11px var(--mono);
+  font: 500 12px var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 10px 0 0;
@@ -705,7 +732,7 @@ input {
 /* In-scene part label (drei <Html>, rendered outside the HUD). */
 .part-label {
   white-space: nowrap;
-  font: 600 10px var(--mono);
+  font: 600 11px var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg);
@@ -760,7 +787,7 @@ input {
 }
 
 .telemetry-label {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   color: var(--muted);
 }
@@ -773,7 +800,7 @@ input {
 }
 
 .telemetry-unit {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--muted);
   margin-left: 3px;
@@ -933,8 +960,8 @@ input {
   border: 0;
   border-right: 1px solid var(--line);
   background: transparent;
-  color: var(--muted);
-  font: 500 11px var(--mono);
+  color: var(--inactive);
+  font: 500 12px var(--mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 0 16px;
@@ -985,23 +1012,45 @@ input {
   min-width: 0;
 }
 
+.hud-legal {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  max-width: 560px;
+}
+
 .hud-disclaimer,
 .hud-hint {
   margin: 0;
-  font: 400 9px/1.4 var(--mono);
-  letter-spacing: 0.08em;
+  font: 400 12px/1.45 var(--mono);
+  letter-spacing: 0.05em;
   color: var(--dim);
 }
 
 .hud-disclaimer {
-  max-width: 420px;
+  max-width: 560px;
+}
+
+/* Licence credit for the model (CC BY 4.0): quiet, but always shown and readable. */
+.hud-credit {
+  margin: 0;
+  font: 400 12px/1.45 var(--mono);
+  letter-spacing: 0.05em;
+  color: var(--dim);
+}
+
+.hud-credit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .quality-select {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font: 500 10px var(--mono);
+  font: 500 11px var(--mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1012,7 +1061,7 @@ input {
   appearance: none;
   background: var(--bg);
   border: 1px solid var(--line-strong);
-  font: 500 10px var(--mono);
+  font: 500 11px var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 5px 8px;
@@ -1048,8 +1097,14 @@ input {
   z-index: 1;
 }
 
-.hud--cinematic .model-badge .badge-meta:not(.badge-meta--keep) {
-  display: none;
+/* Cinematic: the wordmark floats alone on the top letterbox, no bar behind it. */
+.hud--cinematic .hud-top {
+  background: transparent;
+  border-bottom-color: transparent;
+}
+
+.hud--cinematic .wordmark {
+  border-right-color: transparent;
 }
 
 .cinematic-caption {
@@ -1315,7 +1370,7 @@ input {
   border: 0;
   border-right: 1px solid var(--line);
   background: transparent;
-  color: var(--muted);
+  color: var(--inactive);
   cursor: pointer;
   text-align: left;
 }
@@ -1325,7 +1380,7 @@ input {
 }
 
 .stunt-tab-index {
-  font: 500 11px var(--mono);
+  font: 500 12px var(--mono);
   letter-spacing: 0.1em;
   color: var(--accent);
 }
@@ -1419,7 +1474,7 @@ input {
 }
 
 .stunt-telemetry-row dt {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   color: var(--muted);
 }
@@ -1440,8 +1495,8 @@ input {
 .stunt-telemetry-note {
   margin: 0;
   padding: 8px 14px;
-  font: 400 9px/1.4 var(--mono);
-  letter-spacing: 0.08em;
+  font: 400 12px/1.45 var(--mono);
+  letter-spacing: 0.05em;
   color: var(--dim);
 }
 
@@ -1450,6 +1505,11 @@ input {
   align-items: center;
   min-height: 40px;
   padding: 0 14px;
+}
+
+.stunt-footer {
+  gap: 18px;
+  flex-wrap: wrap;
 }
 
 .stunt-footer .hud-disclaimer {
@@ -1524,4 +1584,222 @@ input {
   display: grid;
   place-items: center;
   color: var(--accent);
+}
+
+/* Phones: the larger, brighter small type needs its own room. */
+@media (max-width: 720px) {
+  .mode-tab {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .hud-footline {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  /* Disclaimer and credit across the full width; Graphics drops to its own row. */
+  .hud-legal {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Docs                                                                */
+/* ------------------------------------------------------------------ */
+
+.top-right {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.top-right .model-badge {
+  flex: 1 1 auto;
+}
+
+.docs-button {
+  flex: none;
+  padding: 0 16px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  color: var(--inactive);
+  font: 500 12px var(--mono);
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.docs-button:hover,
+.docs-button[aria-expanded='true'] {
+  color: var(--fg);
+  background: #141414;
+}
+
+.docs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.docs-panel {
+  width: min(780px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+}
+
+.docs-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.docs-tag {
+  color: var(--accent);
+}
+
+.docs-head h2 {
+  margin: 8px 0 0;
+  font: 800 clamp(18px, 3.2vw, 26px) / 1.1 var(--font);
+  letter-spacing: -0.01em;
+}
+
+.docs-close {
+  flex: none;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--fg);
+  font: 600 12px var(--mono);
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.docs-close:hover {
+  border-color: var(--accent);
+}
+
+.docs-close kbd {
+  margin-left: 6px;
+  color: var(--muted);
+}
+
+.docs-note {
+  margin: 0;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  font: 400 12px/1.5 var(--mono);
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  text-shadow: var(--text-lift);
+}
+
+.docs-section {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.docs-section:last-child {
+  border-bottom: 0;
+}
+
+.docs-section h3 {
+  margin: 0 0 12px;
+  color: var(--accent);
+  white-space: normal;
+}
+
+.docs-section p,
+.docs-systems dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.docs-systems {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.docs-systems dt {
+  margin-bottom: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--fg);
+}
+
+.docs-tiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+}
+
+.docs-tiers li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+}
+
+.docs-tiers li + li {
+  border-left: 1px solid var(--line);
+}
+
+.docs-tier-index {
+  font: 500 12px var(--mono);
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.docs-tier-name {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.docs-tier-access {
+  font: 500 11px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--inactive);
+}
+
+.docs-tiers li p {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .docs-overlay {
+    padding: 0;
+    place-items: stretch;
+  }
+  .docs-panel {
+    max-height: 100vh;
+    border: 0;
+  }
+  .docs-tiers {
+    grid-template-columns: 1fr;
+  }
+  .docs-tiers li + li {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .docs-button {
+    padding: 0 12px;
+  }
 }

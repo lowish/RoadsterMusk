@@ -11,7 +11,7 @@ export function App() {
   return (
     <main className="app">
       {section === 'stunts' ? (
-        <Suspense fallback={<div className="section-loading sec-label">LOADING // STUNT_SHOWCASE</div>}>
+        <Suspense fallback={<div className="section-loading sec-label">LOADING</div>}>
           <StuntShowcase />
         </Suspense>
       ) : (
