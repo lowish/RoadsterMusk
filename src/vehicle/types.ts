@@ -42,6 +42,8 @@ export interface VehicleModel {
   provenance: {
     kind: 'placeholder' | 'gltf';
     name: string;
+    /** Corrected name for headings, when the published title has a typo (the credit keeps the original). */
+    displayName?: string;
     license?: string;
     licenseUrl?: string;
     author?: string;
@@ -68,7 +70,10 @@ export type VehicleSource =
   | {
       kind: 'gltf';
       url: string;
+      /** Title exactly as published by its creator (used in the licence credit). */
       name: string;
+      /** Corrected name for headings, when the published title has a typo. */
+      displayName?: string;
       license: string;
       licenseUrl?: string;
       author: string;
