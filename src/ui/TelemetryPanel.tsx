@@ -46,7 +46,7 @@ export function TelemetryPanel() {
   const vs = t.verticalSpeed;
   return (
     <section className="telemetry" aria-label="Simulated telemetry">
-      <span className="sec-label telemetry-tag">SEC_04 // TELEMETRY</span>
+      <span className="sec-label telemetry-tag">TELEMETRY</span>
       <Readout label="SPD" value={String(t.speedKmh)} unit="km/h" />
       <Readout label="ALT" value={t.altitude.toFixed(1)} unit="m" />
       <Readout label="V/S" value={`${vs > 0 ? '+' : ''}${vs.toFixed(1)}`} unit="m/s" />

@@ -99,7 +99,7 @@ export function EngineeringPanel() {
   return (
     <aside className={`showroom-panel engineering-panel ${open ? 'is-open' : ''}`} aria-label="Engineering inspection">
       <button type="button" className="panel-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <span className="sec-label">SEC_02 // INSPECT</span>
+        <span className="sec-label">INSPECT</span>
         <span className="panel-toggle-icon" aria-hidden>
           {open ? '−' : '+'}
         </span>

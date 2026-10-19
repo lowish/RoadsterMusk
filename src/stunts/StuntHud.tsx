@@ -1,13 +1,15 @@
 import { useProgress } from '@react-three/drei';
 import { useAppStore } from '../state/useAppStore';
 import { ModeTabs } from '../ui/ModeTabs';
+import { DocsButton } from '../ui/DocsModal';
+import { ModelCredit } from '../ui/ModelCredit';
 import { useRuntimeSample } from '../ui/useRuntimeSample';
 import { VEHICLE_SOURCE } from '../vehicle/vehicleSource';
 import { STUNTS, stuntInfo, telemetryAt, type StuntTelemetry } from './routines';
 import { stuntRuntime } from './stuntRuntime';
 
-/** Licence credit for the model (CC BY 4.0 requires it), straight from the vehicle source. */
-function CreditBadge() {
+/** Which model is on show. The licence credit lives in the footer (ModelCredit). */
+function ModelBadge() {
   const { progress, active } = useProgress();
   if (VEHICLE_SOURCE.kind !== 'gltf') {
     return (
@@ -21,17 +23,7 @@ function CreditBadge() {
   return (
     <div className="model-badge">
       <span className="sec-label">MODEL</span>
-      <span className="badge-title">
-        <a href={s.sourceUrl} target="_blank" rel="noopener noreferrer">
-          {s.name}
-        </a>
-      </span>
-      <span className="badge-meta badge-meta--keep">
-        {s.author} ·{' '}
-        <a href={s.licenseUrl} target="_blank" rel="noopener noreferrer">
-          {s.license}
-        </a>
-      </span>
+      <span className="badge-title">{s.displayName ?? s.name}</span>
       {active && <span className="badge-meta">LOADING {Math.round(progress)}%</span>}
     </div>
   );
@@ -63,7 +55,7 @@ function TelemetryBox() {
   ];
   return (
     <section className="stunt-telemetry" aria-label="Stunt telemetry">
-      <div className="sec-label panel-tag">SEC_07 // TELEMETRY</div>
+      <div className="sec-label panel-tag">TELEMETRY</div>
       <dl>
         {rows.map(([k, v]) => (
           <div key={k} className={`stunt-telemetry-row ${k === 'G-FORCE' && t.gLoad >= 2.5 ? 'is-hot' : ''}`}>
@@ -86,13 +78,15 @@ export function StuntHud() {
     <div className="hud stunt-hud" data-stunt={stunt}>
       <header className="hud-top">
         <div className="wordmark">
-          <span className="sec-label">SEC_06 // STUNT_SHOWCASE</span>
           <span className="wordmark-name">ROADSTERMUSK</span>
         </div>
         <div className="hud-switches">
           <ModeTabs />
         </div>
-        <CreditBadge />
+        <div className="top-right">
+          <ModelBadge />
+          <DocsButton />
+        </div>
       </header>
 
       <nav className="stunt-tabs" role="tablist" aria-label="Stunt routines">
@@ -113,9 +107,6 @@ export function StuntHud() {
 
       {/* key restarts the entrance animation on each routine change */}
       <div className="stunt-title" key={stunt}>
-        <span className="sec-label">
-          {info.code} · {info.duration.toFixed(1)}S
-        </span>
         <h1>{info.title}</h1>
         <p>{info.brief}</p>
       </div>
@@ -126,6 +117,7 @@ export function StuntHud() {
         <p className="hud-disclaimer">
           FICTIONAL FLIGHT CONCEPT — NOT A CAPABILITY OF ANY REAL VEHICLE. FAN PROJECT; NOT AFFILIATED WITH TESLA, INC.
         </p>
+        <ModelCredit />
       </footer>
     </div>
   );

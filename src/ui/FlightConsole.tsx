@@ -30,7 +30,7 @@ export function FlightConsole() {
 
   return (
     <section className="flight-console" aria-label="Flight systems" data-state={state}>
-      <div className="sec-label panel-tag">SEC_01 // VEHICLE_LAB</div>
+      <div className="sec-label panel-tag">VEHICLE LAB</div>
       <ol className="state-track" aria-label="Transformation sequence">
         {VEHICLE_STATES.map((s) => (
           <li key={s} className="state-step" aria-current={s === state ? 'step' : undefined}>
