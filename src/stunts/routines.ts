@@ -54,8 +54,6 @@ export interface StuntInfo {
   id: StuntId;
   index: string;
   tab: string;
-  /** Monospace code name, e.g. STUNT_02 // VERTICAL_LOOP. */
-  code: string;
   title: string;
   brief: string;
   duration: number;
@@ -415,8 +413,7 @@ export const STUNTS: readonly StuntInfo[] = [
     id: 'hover',
     index: '01',
     tab: 'HOVER',
-    code: 'STUNT_01 // HOVER_HOLD',
-    title: 'STATION-KEEPING HOVER',
+    title: 'STATION KEEPING HOVER',
     brief: 'Holding position on four under-floor cold-gas jets with a slow yaw sweep.',
     duration: HOVER_T,
     camera: still({ position: [7.5, 3.4, 9.5], target: [0, HOVER_HEIGHT + 0.6, 0], follow: 0.3 }),
@@ -425,8 +422,7 @@ export const STUNTS: readonly StuntInfo[] = [
     id: 'loop',
     index: '02',
     tab: '180° LOOP',
-    code: 'STUNT_02 // VERTICAL_LOOP',
-    title: 'VERTICAL RAMP // BALLISTIC LAUNCH',
+    title: 'VERTICAL RAMP BALLISTIC LAUNCH',
     brief: 'Up the J-curve ramp, off the lip on a floating ballistic arc, twisting upright, then a level, smoke-cushioned touchdown.',
     duration: RAMP_T,
     camera: rampCamera,
@@ -435,8 +431,7 @@ export const STUNTS: readonly StuntInfo[] = [
     id: 'roll',
     index: '03',
     tab: '360° ROLL',
-    code: 'STUNT_03 // BARREL_ROLL',
-    title: '360° BARREL ROLL // KICKFLIP',
+    title: '360° BARREL ROLL KICKFLIP',
     brief: 'Lift off over the parked truck and sedan, a full barrel roll above them, a cushioned touchdown, then back over the other way.',
     duration: duration(ROLL_SEGMENTS),
     // Broadside on to the parked set (sedan nearest), wide enough for the whole 18 m run.
@@ -446,8 +441,7 @@ export const STUNTS: readonly StuntInfo[] = [
     id: 'slalom',
     index: '04',
     tab: 'SLALOM',
-    code: 'STUNT_04 // HIGHWAY_SLALOM',
-    title: 'HIGHWAY SLALOM // OBSTACLE GAUNTLET',
+    title: 'HIGHWAY SLALOM OBSTACLE GAUNTLET',
     brief: 'High-speed multi-lane navigation utilizing vector-thruster bursts to glide around obstacles.',
     duration: SLALOM_T,
     // High chase behind the car, looking down the course as it streams in.
