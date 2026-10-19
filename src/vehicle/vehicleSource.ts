@@ -14,14 +14,16 @@ import type { VehicleSource } from './types';
  * - wheel centres measured on the published model: y 0.14, z +0.537 / −0.638.
  *
  * Licence: CC BY 4.0. The credit (title, author, licence, source) must stay
- * visible; the HUD shows it in the model badge.
+ * visible; the HUD footer shows it (ModelCredit) in every section.
  */
 export const VEHICLE_SOURCE: VehicleSource = {
   kind: 'gltf',
   // The file name contains spaces, so the URL is encoded.
   url: encodeURI('/models/tesla-roadtser-2026/source/tesla roadtser 2026.glb'),
-  // Title exactly as published by its creator.
+  // Title exactly as published by its creator (the licence credit uses it as is).
   name: 'Tesla Roadtser 2026',
+  // The corrected spelling for the HUD heading.
+  displayName: 'Tesla Roadster 2026',
   license: 'CC BY 4.0',
   licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
   author: 'asiphy007',
