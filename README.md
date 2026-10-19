@@ -28,13 +28,14 @@ Requires Node 18+ (developed on Node 22). The model file is served from `public/
 
 | Section | Where | What it does |
 |---|---|---|
-| **SEC_01 // VEHICLE_LAB** | left rail | The transformation sequence and flight commands: *Engage flight systems* → PREPARING (thrusters arm) → TAKEOFF → HOVERING; *Take control* (manual flight); *Hold position*; *Land* (enabled below 9 km/h); *Reset*. |
-| **SEC_02 // CONFIGURE** | right rail (Showroom) | 8 paint colours and Gloss / Satin / Matte finishes, applied live to the loaded model's body paint (see *Paint on a single-material model* below). |
-| **SEC_02 // INSPECT** | right rail (Engineering tab) | Wireframe, transparent shell, **Show paint mask**, an exploded view (only for models with 3+ separate parts), and a component list with measured mesh data. |
-| **SEC_03 // CAMERA** | bottom bar | Hero ¾, Profile, Rear ¾, Plan, Wheel and **Cinematic** (Esc or drag to exit). In Open sky, *Horizon* is added. |
-| **SEC_04 // TELEMETRY** | top, between rails | Live simulated speed, altitude, vertical speed, heading, distance from the pad and thrust, shown whenever the car is airborne. |
+| **VEHICLE LAB** | left rail | The transformation sequence and flight commands: *Engage flight systems* → PREPARING (thrusters arm) → TAKEOFF → HOVERING; *Take control* (manual flight); *Hold position*; *Land* (enabled below 9 km/h); *Reset*. |
+| **CONFIGURE** | right rail (Showroom) | 8 paint colours and Gloss / Satin / Matte finishes, applied live to the loaded model's body paint (see *Paint on a single-material model* below). |
+| **INSPECT** | right rail (Engineering tab) | Wireframe, transparent shell, **Show paint mask**, an exploded view (only for models with 3+ separate parts), and a component list with measured mesh data. |
+| **CAMERA** | bottom bar | Hero ¾, Profile, Rear ¾, Plan, Wheel and **Cinematic** (Esc or drag to exit). In Open sky, *Horizon* is added. |
+| **TELEMETRY** | top, between rails | Live simulated speed, altitude, vertical speed, heading, distance from the pad and thrust, shown whenever the car is airborne. |
 | **Studio / Open sky** | top bar | Switches environment, with an exposure dip, a lighting-rig swap and a camera re-frame. |
-| **SEC_06 // STUNT_SHOWCASE** | top bar → *Stunts* (while parked) | An automated stunt showcase with no driving input. See below. |
+| **DOCS** | top bar, right (every section) | A modal with Tesla's announced Roadster specifications, quoted as supplied: overview and design, propulsion and physics systems, and the Road / Race / Air Ready trim tiers. It is labelled as manufacturer claims, not verified by this project, and restates that everything in the lab, flight included, is a scripted animation. Esc, the Close button or a click outside closes it, and focus returns to the button. Content lives in `ui/DocsModal.tsx`. |
+| **STUNTS** | top bar → *Stunts* (while parked) | An automated stunt showcase with no driving input. See below. |
 
 ### Flight controls
 
@@ -127,10 +128,12 @@ Every propulsion effect is smoke: **there are no light cones, beams, plume meshe
 
 ## Design system (HUD)
 
-Technical brutalism: matte `#0a0a0a`, panels anchored to the screen edges, 1px `#262626` rules, **zero border-radius**, monospace `SEC_xx // LABEL` section tags, high-contrast type, and a single safety-orange accent (`#ff5f00`, shared with the 3D platform ring and the landing pads via `ui/theme.ts`). There is no blue or cyan anywhere: propulsion states use signal white (`--plasma: #e6e6e6`).
+Technical brutalism: matte `#0a0a0a`, panels anchored to the screen edges, 1px `#262626` rules, **zero border-radius**, short monospace panel tags (`CONFIGURE`, `TELEMETRY`, …) with no section numbers, a plain `ROADSTERMUSK` wordmark with mild tracking, high-contrast type, and a single safety-orange accent (`#ff5f00`, shared with the 3D platform ring and the landing pads via `ui/theme.ts`). There is no blue or cyan anywhere: propulsion states use signal white (`--plasma: #e6e6e6`).
 
+
+**Header and credit.** The header carries only the wordmark, the section tabs and *MODEL Tesla Roadster 2026* (a corrected `displayName`). The model's CC BY 4.0 licence requires its credit wherever it is shown, so that credit stays: it sits as one quiet footer line in every section (`ui/ModelCredit.tsx`). It names the work exactly as its creator published it ("Tesla Roadtser 2026"), the author and the licence, with links.
 - **Wide screens:** top bar, left rail, right rail, a telemetry strip between the rails, and a bottom bar.
-- **≤720 px:** one flowing column (header → configure → car → console → camera bar), so real panel heights are respected rather than guessed. The licence credit wraps instead of truncating.
+- **≤720 px:** one flowing column (header → configure → car → console → camera bar), so real panel heights are respected rather than guessed. The footer licence credit wraps instead of truncating.
 
 All styles are in `src/styles.css`, organised by section.
 
@@ -181,7 +184,7 @@ scripts/          GLB inspection tool (read-only)
 
 ### Manual QA checklist
 
-- [ ] The model loads centred on the platform, and the badge shows the full credit.
+- [ ] The model loads centred on the platform, the header reads *MODEL Tesla Roadster 2026*, and the footer shows the full credit in every section.
 - [ ] Every swatch and finish changes only the bodywork; glass, trim, tyres, rims and lights stay as they are (check with *Show paint mask*).
 - [ ] The presets animate, Wheel frames the front wheel, and Cinematic starts and stops.
 - [ ] Engage → thrusters arm (jets hit the platform) → takeoff → hover → Take control → fly → Hold → Land → *Return to platform*.
