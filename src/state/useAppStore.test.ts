@@ -137,6 +137,28 @@ describe('engineering', () => {
     store().setAppMode('showroom');
     expect(store().engineering).toMatchObject({ explode: 0, wireframe: false, selectedPart: null });
   });
+
+  it('selects propulsion hotspots (exclusive with parts), toggles airflow, and resets on exit', () => {
+    store().setAppMode('engineering');
+    store().setPartReports([{ id: 'body', label: 'Body', role: 'paint', concept: false, meshCount: 1, triangles: 2, materials: [] }]);
+    const seq = store().engineering.focusSeq;
+    store().selectPart('body');
+    store().selectHotspot('copv');
+    expect(store().engineering).toMatchObject({ hotspot: 'copv', selectedPart: null });
+    expect(store().engineering.focusSeq).toBe(seq + 2);
+    expect(store().cameraPreset).toBeNull();
+
+    store().selectHotspot('warp-drive' as never);
+    expect(store().engineering.hotspot).toBe('copv');
+    store().selectPart('body');
+    expect(store().engineering).toMatchObject({ hotspot: null, selectedPart: 'body' });
+
+    store().setEngineeringView({ airflow: true });
+    expect(store().engineering.airflow).toBe(true);
+    store().selectHotspot('underfloor');
+    store().setAppMode('showroom');
+    expect(store().engineering).toMatchObject({ hotspot: null, airflow: false });
+  });
 });
 
 describe('stunt showcase section', () => {

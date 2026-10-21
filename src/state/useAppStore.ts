@@ -9,6 +9,7 @@ import {
   type RimId,
 } from '../vehicle/customizationOptions';
 import type { VehicleModel } from '../vehicle/types';
+import { isHotspotId, type HotspotId } from '../engineering/hotspots';
 import type { PartReport } from '../engineering/partInspection';
 import { isStuntId, type StuntId } from '../stunts/routines';
 import {
@@ -84,7 +85,7 @@ interface AppState {
 
   engineering: EngineeringView;
   setEngineeringView: (
-    patch: Partial<Pick<EngineeringView, 'wireframe' | 'xray' | 'explode' | 'showPaintMask'>>,
+    patch: Partial<Pick<EngineeringView, 'wireframe' | 'xray' | 'explode' | 'showPaintMask' | 'airflow'>>,
   ) => void;
   /** Measured reports for every inspectable part, filled by the engineering controller. */
   partReports: PartReport[];
@@ -92,6 +93,8 @@ interface AppState {
   setHoveredPart: (id: string | null) => void;
   /** Select a part (or null for none). Unknown ids are ignored. Bumps `focusSeq` so the camera frames it. */
   selectPart: (id: string | null) => void;
+  /** Select a propulsion hotspot (or null). Unknown ids are ignored. Bumps `focusSeq` so the camera flies to it. */
+  selectHotspot: (id: HotspotId | null) => void;
 }
 
 export type AppMode = 'showroom' | 'engineering';
@@ -104,6 +107,10 @@ export interface EngineeringView {
   explode: number;
   /** Render the texture paint mask (models with a single baked material). */
   showPaintMask: boolean;
+  /** Animated suction streamlines around and under the car. */
+  airflow: boolean;
+  /** Propulsion hotspot being inspected (mutually exclusive with a selected part). */
+  hotspot: HotspotId | null;
   hoveredPart: string | null;
   selectedPart: string | null;
   focusSeq: number;
@@ -114,6 +121,8 @@ const ENGINEERING_DEFAULTS: EngineeringView = {
   xray: false,
   explode: 0,
   showPaintMask: false,
+  airflow: false,
+  hotspot: null,
   hoveredPart: null,
   selectedPart: null,
   focusSeq: 0,
@@ -240,6 +249,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (typeof patch.wireframe === 'boolean') clean.wireframe = patch.wireframe;
     if (typeof patch.xray === 'boolean') clean.xray = patch.xray;
     if (typeof patch.showPaintMask === 'boolean') clean.showPaintMask = patch.showPaintMask;
+    if (typeof patch.airflow === 'boolean') clean.airflow = patch.airflow;
     if (typeof patch.explode === 'number' && Number.isFinite(patch.explode)) {
       clean.explode = Math.min(1, Math.max(0, patch.explode));
     }
@@ -255,7 +265,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectPart: (id) => {
     if (id !== null && !get().partReports.some((p) => p.id === id)) return;
     set((s) => ({
-      engineering: { ...s.engineering, selectedPart: id, focusSeq: s.engineering.focusSeq + 1 },
+      engineering: { ...s.engineering, selectedPart: id, hotspot: null, focusSeq: s.engineering.focusSeq + 1 },
+      cinematic: false,
+      ...(id === null ? { cameraPreset: 'hero' as const } : { cameraPreset: null }),
+    }));
+  },
+  selectHotspot: (id) => {
+    if (id !== null && !isHotspotId(id)) return;
+    set((s) => ({
+      engineering: { ...s.engineering, hotspot: id, selectedPart: null, focusSeq: s.engineering.focusSeq + 1 },
       cinematic: false,
       ...(id === null ? { cameraPreset: 'hero' as const } : { cameraPreset: null }),
     }));
