@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { HOTSPOTS, hotspot, type HotspotId } from '../engineering/hotspots';
 import type { PartReport } from '../engineering/partInspection';
+import { runtime } from '../sim/runtime';
 import { useAppStore } from '../state/useAppStore';
 import { isPaintMaskMaterial } from '../vehicle/paintMaskMaterial';
+import { useRuntimeSample } from './useRuntimeSample';
 
 const ROLE_LABELS: Record<string, string> = {
   paint: 'Body',
@@ -13,9 +16,6 @@ const ROLE_LABELS: Record<string, string> = {
   unclassified: 'Unclassified',
   concept: 'Concept',
 };
-
-/** Fewer separable parts than this and an exploded view says nothing useful. */
-const MIN_EXPLODABLE_PARTS = 3;
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -64,19 +64,47 @@ function Inspector({ report }: { report: PartReport }) {
   );
 }
 
-/** Engineering inspection: render modes, exploded view and the model's component list. */
+const readThrust = () => Math.round(runtime.pose.thrust * 100);
+
+/** Data card for the selected propulsion hotspot; thrust output is read live from the simulation. */
+function HotspotCard({ id }: { id: HotspotId }) {
+  const h = hotspot(id);
+  const thrust = useRuntimeSample(readThrust, 8);
+  const vehicleState = useAppStore((s) => s.vehicleState);
+  return (
+    <div className="inspector hotspot-card" aria-live="polite">
+      <div className="hotspot-card-head">
+        <span className="hotspot-index">{h.index}</span>
+        <div>
+          <div className="inspector-title">{h.label}</div>
+          <div className="inspector-sub">{h.role}</div>
+        </div>
+      </div>
+      <dl className="inspector-grid">
+        {h.data.map((row) => (
+          <div key={row.key} className="inspector-row">
+            <dt>{row.key}</dt>
+            <dd>{row.live === 'thrust' ? `${thrust}% · ${thrust === 0 ? `IDLE (${vehicleState})` : 'LIVE'}` : row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+/** Engineering inspection: render overlays, propulsion hotspots and the model's component list. */
 export function EngineeringPanel() {
   const view = useAppStore((s) => s.engineering);
   const reports = useAppStore((s) => s.partReports);
   const setView = useAppStore((s) => s.setEngineeringView);
   const selectPart = useAppStore((s) => s.selectPart);
+  const selectHotspot = useAppStore((s) => s.selectHotspot);
   const setHoveredPart = useAppStore((s) => s.setHoveredPart);
   const [open, setOpen] = useState(() => window.innerWidth >= 720);
   const hasPaintMask = useAppStore((s) => (s.vehicle?.materialSlots.paint ?? []).some(isPaintMaskMaterial));
 
   const modelParts = reports.filter((r) => !r.concept);
   const conceptParts = reports.filter((r) => r.concept);
-  const explodable = modelParts.length >= MIN_EXPLODABLE_PARTS;
   const selected = reports.find((r) => r.id === view.selectedPart);
 
   const partButton = (r: PartReport) => (
@@ -99,7 +127,7 @@ export function EngineeringPanel() {
   return (
     <aside className={`showroom-panel engineering-panel ${open ? 'is-open' : ''}`} aria-label="Engineering inspection">
       <button type="button" className="panel-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <span className="sec-label">INSPECT</span>
+        <span className="sec-label">ENGINEERING // SPACEX HARDWARE INSPECTOR</span>
         <span className="panel-toggle-icon" aria-hidden>
           {open ? '−' : '+'}
         </span>
@@ -108,10 +136,15 @@ export function EngineeringPanel() {
       {open && (
         <div className="panel-body">
           <section className="panel-section">
-            <h2 className="panel-heading">View</h2>
+            <h2 className="panel-heading">Overlays</h2>
             <div className="toggles">
-              <Toggle label="Wireframe" checked={view.wireframe} onChange={(v) => setView({ wireframe: v })} />
-              <Toggle label="Transparent shell" checked={view.xray} onChange={(v) => setView({ xray: v })} />
+              <Toggle label="Wireframe view" checked={view.wireframe} onChange={(v) => setView({ wireframe: v })} />
+              <Toggle label="Transparent shell (X-ray chassis)" checked={view.xray} onChange={(v) => setView({ xray: v })} />
+              <Toggle
+                label="Aerodynamic airflow vectors"
+                checked={view.airflow}
+                onChange={(v) => setView({ airflow: v })}
+              />
               {hasPaintMask && (
                 <Toggle
                   label="Show paint mask"
@@ -124,20 +157,35 @@ export function EngineeringPanel() {
 
           <section className="panel-section">
             <h2 className="panel-heading">
-              Exploded view <span className="panel-value">{Math.round(view.explode * 100)}%</span>
+              Propulsion hotspots <span className="panel-value">{HOTSPOTS.length}</span>
             </h2>
-            <input
-              type="range"
-              className="slider"
-              min={0}
-              max={1}
-              step={0.01}
-              value={view.explode}
-              disabled={!explodable}
-              aria-label="Exploded view amount"
-              onChange={(e) => setView({ explode: Number(e.target.value) })}
-            />
-            {!explodable && <p className="panel-note">This model has too few separate parts to explode.</p>}
+            <ul className="part-list">
+              {HOTSPOTS.map((h) => (
+                <li key={h.id}>
+                  <button
+                    type="button"
+                    className="part-row hotspot-row"
+                    aria-pressed={view.hotspot === h.id}
+                    onClick={() => selectHotspot(view.hotspot === h.id ? null : h.id)}
+                  >
+                    <span className="hotspot-row-text">
+                      <span>
+                        <span className="hotspot-row-index">[{h.index}]</span> {h.label}
+                      </span>
+                      <span className="hotspot-row-role">{h.role}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {view.hotspot && (
+              <>
+                <HotspotCard id={view.hotspot} />
+                <button type="button" className="text-button" onClick={() => selectHotspot(null)}>
+                  Clear hotspot
+                </button>
+              </>
+            )}
           </section>
 
           <section className="panel-section">
@@ -163,7 +211,9 @@ export function EngineeringPanel() {
           )}
 
           <p className="panel-note">
-            Values are measured from the 3D model's geometry. They are not manufacturer data.
+            Component values are measured from the 3D model's geometry, not manufacturer data. Propulsion hotspots
+            mark concept hardware for a fictional flight kit (only the under-floor jets are modelled); their figures are
+            concept or announced claims, not verified data. Not affiliated with SpaceX or Tesla, Inc.
           </p>
         </div>
       )}
