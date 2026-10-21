@@ -1803,3 +1803,97 @@ input {
     padding: 0 12px;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Engineering: propulsion hotspots                                    */
+/* ------------------------------------------------------------------ */
+
+.hotspot-marker {
+  display: inline-flex;
+  align-items: stretch;
+  padding: 0;
+  border: 1px solid var(--accent);
+  background: rgba(10, 10, 10, 0.86);
+  color: var(--fg);
+  font: 600 11px var(--mono);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  cursor: pointer;
+  text-shadow: var(--text-lift);
+}
+
+.hotspot-marker .hotspot-index {
+  padding: 4px 6px;
+  color: var(--accent);
+}
+
+/* The label opens on hover/focus and stays open while selected. */
+.hotspot-marker .hotspot-label {
+  display: none;
+  padding: 4px 8px 4px 0;
+}
+
+.hotspot-marker:hover .hotspot-label,
+.hotspot-marker:focus-visible .hotspot-label,
+.hotspot-marker[aria-pressed='true'] .hotspot-label {
+  display: inline;
+}
+
+.hotspot-marker[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  text-shadow: none;
+}
+
+.hotspot-marker[aria-pressed='true'] .hotspot-index {
+  color: var(--accent-ink);
+}
+
+.hotspot-row-index {
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.hotspot-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.hotspot-row-role {
+  font: 400 12px/1.35 var(--mono);
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  text-shadow: var(--text-lift);
+}
+
+/* The inspector title is long; let it wrap rather than truncate. */
+.engineering-panel .panel-toggle .sec-label {
+  white-space: normal;
+  text-align: left;
+}
+
+.hotspot-card {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  padding: 12px;
+}
+
+.hotspot-card-head {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.hotspot-card-head .hotspot-index {
+  font: 700 12px var(--mono);
+  color: var(--accent);
+}
+
+/* Rows wrap a dt/dd pair; let them sit directly in the inspector grid. */
+.inspector-row {
+  display: contents;
+}
