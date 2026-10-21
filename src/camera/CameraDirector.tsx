@@ -9,6 +9,7 @@ import { useAppStore } from '../state/useAppStore';
 import { chasePose, CHASE } from './chaseCamera';
 import { getPreset, INTRO_POSITION } from './cameraPresets';
 import { cinematicPose } from './cinematicPath';
+import { hotspot } from '../engineering/hotspots';
 import { FOLLOW_TARGET_HEIGHT, STATE_FRAMINGS } from './stateFramings';
 
 const FRAMED_ASPECT = 1.6;
@@ -72,12 +73,21 @@ export function CameraDirector() {
     void controls.setLookAt(...pos, ...target, !cut);
   }, [preset, fit, resetCount, landmarks]);
 
-  // ---- Engineering: frame the selected part ----
+  // ---- Engineering: fly to the selected hotspot, or frame the selected part ----
   const focusSeq = useAppStore((s) => s.engineering.focusSeq);
   const scene = useThree((s) => s.scene);
   useEffect(() => {
     const controls = controlsRef.current;
-    const id = useAppStore.getState().engineering.selectedPart;
+    const { selectedPart: id, hotspot: spot } = useAppStore.getState().engineering;
+    const dims = useAppStore.getState().vehicle?.dimensions;
+    if (controls && spot && dims) {
+      // Each hotspot has its own viewing angle; pulled back on narrow screens like the presets.
+      const { position: p, target: t } = hotspot(spot).view(dims).camera;
+      const k = Math.max(1, fit / 1.3);
+      const pos = vehicleToWorld(p.map((v, i) => t[i] + (v - t[i]) * k) as Vec3);
+      void controls.setLookAt(...pos, ...vehicleToWorld(t), true);
+      return;
+    }
     if (!controls || !id) return;
     let part: Object3D | undefined;
     scene.traverse((o) => {
@@ -89,7 +99,7 @@ export function CameraDirector() {
     const sphere = new Box3().setFromObject(part).getBoundingSphere(new Sphere());
     sphere.radius = Math.max(sphere.radius * FOCUS_PADDING, MIN_FOCUS_RADIUS);
     void controls.fitToSphere(sphere, true);
-  }, [focusSeq, scene]);
+  }, [focusSeq, scene, fit]);
 
   // ---- Transformation framings, relative to the vehicle's heading ----
   useEffect(() => {
