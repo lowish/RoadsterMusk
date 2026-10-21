@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { CylinderGeometry, MeshStandardMaterial, type Object3D } from 'three';
 import { useAppStore } from '../../state/useAppStore';
+import { nozzleLayout } from './nozzles';
+
+export { NOZZLE_Y, nozzleLayout } from './nozzles';
 
 /**
  * FICTIONAL propulsion kit: four flush cold-gas nozzles under the floor pan.
@@ -14,25 +17,7 @@ import { useAppStore } from '../../state/useAppStore';
 type Dimensions = { length: number; width: number; height: number };
 
 const FALLBACK: Dimensions = { length: 4.3, width: 1.9, height: 1.1 };
-/** Height of the nozzle faces above the tyre contact patch: just under the floor pan. */
-export const NOZZLE_Y = 0.13;
 const NOZZLE_RADIUS = 0.09;
-
-/**
- * Nozzle centres in the vehicle frame (base at y = 0, nose along +Z): inboard
- * of the wheels and inside the wheelbase, so the jets clear the tyres and
- * every puff starts beneath the body rather than beside it.
- */
-export function nozzleLayout(dims: Dimensions): [number, number, number][] {
-  const x = dims.width * 0.22;
-  const z = dims.length * 0.2;
-  return [
-    [x, NOZZLE_Y, z],
-    [-x, NOZZLE_Y, z],
-    [x, NOZZLE_Y, -z],
-    [-x, NOZZLE_Y, -z],
-  ];
-}
 
 /**
  * By default sized from the loaded vehicle; other scenes (the Stunt Showcase)

@@ -5,6 +5,7 @@ import { VehicleAssembly } from '../animation/VehicleAssembly';
 import { CameraDirector } from '../camera/CameraDirector';
 import { INTRO_POSITION } from '../camera/cameraPresets';
 import { EngineeringController, useEngineeringPointer } from '../engineering/EngineeringController';
+import { PropulsionOverlay } from '../engineering/PropulsionOverlay';
 import { SimulationLoop } from '../sim/SimulationLoop';
 import { useAppStore } from '../state/useAppStore';
 import { FlightKit } from '../vehicle/flightKit/FlightKit';
@@ -43,6 +44,7 @@ export function Experience() {
         <VehicleAssembly {...inspectHandlers}>
           <Vehicle />
           <FlightKit nozzles={labNozzles} />
+          <PropulsionOverlay />
         </VehicleAssembly>
         <VehicleLightsDriver />
         <EngineeringController />
