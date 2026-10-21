@@ -22,7 +22,9 @@
       "Bash(sed -i \"s#it\\('90° climb goes vertical on the rear thrusters and climbs'#it\\('90° climb goes vertical on full climb boost and climbs'#\" src/stunts/routines.test.ts)",
       "Bash(python \"C:/Users/William/AppData/Local/Temp/claude/D--RoadsterMusk/80cf5381-b6cc-4213-87f1-848afedc6d21/scratchpad/readme_ui.py\")",
       "Bash(python \"C:/Users/William/AppData/Local/Temp/claude/D--RoadsterMusk/80cf5381-b6cc-4213-87f1-848afedc6d21/scratchpad/footer_legal.py\" .)",
-      "Bash(python \"C:/Users/William/AppData/Local/Temp/claude/D--RoadsterMusk/80cf5381-b6cc-4213-87f1-848afedc6d21/scratchpad/docs_wire.py\" .)"
+      "Bash(python \"C:/Users/William/AppData/Local/Temp/claude/D--RoadsterMusk/80cf5381-b6cc-4213-87f1-848afedc6d21/scratchpad/docs_wire.py\" .)",
+      "Bash(python \"C:/Users/William/AppData/Local/Temp/claude/D--RoadsterMusk/80cf5381-b6cc-4213-87f1-848afedc6d21/scratchpad/hotspot_store.py\" .)",
+      "Bash(python \"C:/Users/William/AppData/Local/Temp/claude/D--RoadsterMusk/80cf5381-b6cc-4213-87f1-848afedc6d21/scratchpad/eng_panel.py\" .)"
     ]
   }
 }
