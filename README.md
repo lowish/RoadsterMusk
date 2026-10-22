@@ -30,7 +30,7 @@ Requires Node 18+ (developed on Node 22). The model file is served from `public/
 |---|---|---|
 | **VEHICLE LAB** | left rail | The transformation sequence and flight commands: *Engage flight systems* → PREPARING (thrusters arm) → TAKEOFF → HOVERING; *Take control* (manual flight); *Hold position*; *Land* (enabled below 9 km/h); *Reset*. |
 | **CONFIGURE** | right rail (Showroom) | 8 paint colours and Gloss / Satin / Matte finishes, applied live to the loaded model's body paint (see *Paint on a single-material model* below). |
-| **INSPECT** | right rail (Engineering tab) | Wireframe, transparent shell, **Show paint mask**, an exploded view (only for models with 3+ separate parts), and a component list with measured mesh data. |
+| **ENGINEERING // SPACEX HARDWARE INSPECTOR** | right rail (Engineering tab) | **Overlays:** wireframe view, transparent shell (X-ray chassis), **aerodynamic airflow vectors** (animated suction streams drawn in at ground level, under the floor into the fans, and out behind) and the paint mask. **Propulsion hotspots:** [01] under-floor jets, [02] rear vector nozzles, [03] perimeter yaw nozzles and [04] COPV air tanks, selected from the list or from clickable markers on the car. Selecting one flies the camera to its own viewing angle, outlines it with a softly pulsing orange target box, and shows a data card (thrust output read live from the simulation, nozzle type, pressure source). The component list with measured mesh data is kept. Concept hardware for a fictional flight kit: only the under-floor jets are modelled, figures are concept or announced claims, and the panel says it is not affiliated with SpaceX or Tesla. |
 | **CAMERA** | bottom bar | Hero ¾, Profile, Rear ¾, Plan, Wheel and **Cinematic** (Esc or drag to exit). In Open sky, *Horizon* is added. |
 | **TELEMETRY** | top, between rails | Live simulated speed, altitude, vertical speed, heading, distance from the pad and thrust, shown whenever the car is airborne. |
 | **Studio / Open sky** | top bar | Switches environment, with an exposure dip, a lighting-rig swap and a camera re-frame. |
@@ -85,7 +85,7 @@ The swatches drive the material's standard `color`, `roughness`, `metalness`, `c
 
 ### What the model can't do
 
-- **No separate parts:** a single mesh means the exploded view is disabled (the panel says why) and wheels can't rotate independently.
+- **No separate parts:** a single mesh can't be exploded (the inspector uses propulsion hotspots instead; the exploded-view maths stays for multi-part models), and the wheels can't rotate independently.
 - **No animations, no add-ons on the body:** the only propulsion hardware is four fictional flush cold-gas nozzles under the floor pan, built separately (`vehicle/flightKit/`) and placed from the model's dimensions: inboard of the wheels and inside the wheelbase. Nothing protrudes from the sides of the car.
 
 ---
@@ -150,7 +150,7 @@ src/
   vehicle/        GLB loading + normalisation, texture paint mask, customisation driver,
                   procedural placeholder, fictional flight kit
   camera/         Presets (incl. landmark-aimed Wheel), cinematic path, framings, chase camera
-  engineering/    Measurement, exploded-view maths, picking & highlighting, mask view
+  engineering/    Measurement, propulsion hotspots + airflow overlay, exploded-view maths, picking & highlighting, mask view
   scene/          Studio and open-sky environments, platform, lab smoke feed, quality tiers
   effects/smoke/  Billboarded volumetric smoke (InstancedMesh) and its tested lifecycle maths
   input/          Keyboard flight input
@@ -166,7 +166,7 @@ scripts/          GLB inspection tool (read-only)
 
 ## Testing
 
-`npm test` runs 103 tests:
+`npm test` runs 111 tests:
 
 - **Stunt routines:** every routine loops seamlessly, moves continuously and keeps clear of the floor. 02 holds constant speed with v²/r + g on the curve, then leaves the lip on a single-peaked arc that only ever moves outward over the run-up, upright and nose slightly down (never a flip), lands level at a standstill with the impact plume firing, and pivots back to face the ramp; 03 rolls a full 360° on each pass, centred over the parked set and above it, then touches down level on the runway with no sink or drift, the impact plume at full and the suspension compressing and recovering; 04 weaves a full lane each side at highway speed, banking into its swerves; flips smoke more than a hover; a hover reads about 1g.
 - **Vertical ramp:** the routine's position and roof direction match the deck from the run-up to the lip; the ramp is open and continuous, with a curvature that tightens to the top radius and a lip overhanging the deepest point of the curve; the mesh is valid, with triangle winding that matches its normals and red edge strips; the scaffolding stands on the floor, rises above the lip and lies entirely behind the back face, with struts reaching the back of the overhang; the car clears the ramp and scaffolding in flight and touches down softly on the lead-in.
@@ -180,6 +180,7 @@ scripts/          GLB inspection tool (read-only)
 - **State machine, flight model, transformation pose:** transitions, guards, dynamics, frame-rate independence, continuity.
 - **Store end-to-end:** showroom → engage → hover → fly → refused fast landing → hold → land → off-platform → reset, plus engineering, environment and quality rules.
 - **Under-floor nozzles:** four, symmetric, inboard of the tyres, inside the wheelbase and under the floor pan.
+- **Propulsion hotspots:** four in order; each marker sits on the car inside its own target box, with the camera outside the body; the jets box holds every nozzle and the perimeter band rings the car; concept figures are labelled. Hotspot selection is exclusive with part selection and resets when leaving Engineering.
 - **Engineering, range layout, quality tiers, GLB inspector.**
 
 ### Manual QA checklist
