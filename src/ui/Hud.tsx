@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useProgress } from '@react-three/drei';
 import { useAppStore } from '../state/useAppStore';
 import { getFinish, getPaint } from '../vehicle/customizationOptions';
@@ -12,6 +12,7 @@ import { KeyHints } from './KeyHints';
 import { TelemetryPanel } from './TelemetryPanel';
 import { TouchFlightControls } from './TouchFlightControls';
 import { useKeyboardFlight } from '../input/useKeyboardFlight';
+import { useHudInsets } from './useHudInsets';
 import { DocsButton } from './DocsModal';
 import { ModelCredit } from './ModelCredit';
 import { ShowroomPanel } from './ShowroomPanel';
@@ -68,6 +69,8 @@ export function Hud() {
   const flying = vehicleState === 'FLIGHT';
 
   useKeyboardFlight();
+  const hudRef = useRef<HTMLDivElement>(null);
+  useHudInsets(hudRef);
 
   useEffect(() => {
     if (!cinematic) return;
@@ -80,6 +83,7 @@ export function Hud() {
 
   return (
     <div
+      ref={hudRef}
       className={`hud ${cinematic ? 'hud--cinematic' : ''}`}
       data-state={vehicleState}
       data-mode={engineering ? 'engineering' : 'showroom'}
