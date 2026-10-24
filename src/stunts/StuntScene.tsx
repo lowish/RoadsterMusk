@@ -1,8 +1,8 @@
-import { Suspense, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { dampFactor } from '../animation/damp';
 import { ContactShadows, Environment, Grid, Lightformer, PerformanceMonitor } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Group, Vector3, type Mesh } from 'three';
+import { Group, Vector3, type Mesh, type PerspectiveCamera } from 'three';
 import { SmokeSystem, type SmokeFrame } from '../effects/smoke/SmokeSystem';
 import { jetSpeed } from '../effects/smoke/smokeMath';
 import { QUALITY_PROFILES } from '../scene/quality';
@@ -20,16 +20,53 @@ const target = new Vector3();
 const position = new Vector3();
 const shadowGroup = new Group();
 
+/** Shots are composed for this aspect; narrower screens back off to keep the action in frame. */
+const SHOT_ASPECT = 1.5;
+/** Must match the CSS breakpoint where the stunt HUD stacks under the stage. */
+const STACKED_HUD_MAX_WIDTH = 720;
+/** On stacked (phone) layouts, lift the framing by this share of the height into the open band above the text. */
+const STACKED_LIFT = 0.17;
+
+/**
+ * Pull-back for a viewport aspect. Landscape fits the shot's full width
+ * (distance ∝ 1/aspect). Portrait cannot fit a wide manoeuvre at a useful size,
+ * so it backs off more gently and accepts cropping the far edges.
+ */
+function stuntFit(aspect: number): number {
+  const r = SHOT_ASPECT / Math.max(0.1, aspect);
+  return aspect >= 1 ? Math.max(1, r) : Math.max(1, r ** 0.55);
+}
+
 /**
  * Cinematic camera: each routine has a camera path (routines.ts), sampled on
  * the playback clock. On a tab switch the shot crossfades from the one on
  * screen (GSAP drives `camera.blend`). Here the aim eases partly toward the
  * car, the position drifts slowly and backs off on narrow screens so the
- * whole manoeuvre stays in frame.
+ * whole manoeuvre stays in frame. On phones, where the title and telemetry
+ * stack over the lower half, a projection offset lifts the shot into the
+ * open band (an offset, not a stretch: the image stays undistorted).
  */
 function CameraRig() {
-  const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height));
+  const size = useThree((s) => s.size);
+  const camera = useThree((s) => s.camera) as PerspectiveCamera;
+  const aspect = size.width / Math.max(1, size.height);
   const placed = useRef(false);
+
+  useEffect(() => {
+    if (size.width <= STACKED_HUD_MAX_WIDTH) {
+      const extra = Math.round(size.height * 2 * STACKED_LIFT);
+      // Render a taller virtual frame and show its lower part: content moves up by STACKED_LIFT × height.
+      camera.setViewOffset(size.width, size.height + extra, 0, extra, size.width, size.height);
+    } else {
+      camera.clearViewOffset();
+    }
+    camera.updateProjectionMatrix();
+    return () => {
+      camera.clearViewOffset();
+      camera.updateProjectionMatrix();
+    };
+  }, [camera, size.width, size.height]);
+
   useFrame(({ camera, clock }, delta) => {
     const rt = stuntRuntime;
     const shot = stuntInfo(rt.active).camera(rt.clock.t);
@@ -45,7 +82,7 @@ function CameraRig() {
     current.follow = mix(from.follow, shot.follow);
 
     const c = current;
-    const fit = Math.max(1, 1.5 / aspect);
+    const fit = stuntFit(aspect);
     target.set(c.tx, c.ty, c.tz).lerp(rt.shown.position, c.follow);
     const drift = Math.sin(clock.elapsedTime * 0.15);
     position.set(

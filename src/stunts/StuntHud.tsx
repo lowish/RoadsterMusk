@@ -1,8 +1,10 @@
+import { useRef } from 'react';
 import { useProgress } from '@react-three/drei';
 import { useAppStore } from '../state/useAppStore';
 import { ModeTabs } from '../ui/ModeTabs';
 import { DocsButton } from '../ui/DocsModal';
 import { ModelCredit } from '../ui/ModelCredit';
+import { useHudInsets } from '../ui/useHudInsets';
 import { useRuntimeSample } from '../ui/useRuntimeSample';
 import { VEHICLE_SOURCE } from '../vehicle/vehicleSource';
 import { STUNTS, stuntInfo, telemetryAt, type StuntTelemetry } from './routines';
@@ -73,9 +75,11 @@ export function StuntHud() {
   const stunt = useAppStore((s) => s.stunt);
   const setStunt = useAppStore((s) => s.setStunt);
   const info = stuntInfo(stunt);
+  const hudRef = useRef<HTMLDivElement>(null);
+  useHudInsets(hudRef);
 
   return (
-    <div className="hud stunt-hud" data-stunt={stunt}>
+    <div ref={hudRef} className="hud stunt-hud" data-stunt={stunt}>
       <header className="hud-top">
         <div className="wordmark">
           <span className="wordmark-name">ROADSTERMUSK</span>
