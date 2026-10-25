@@ -1,8 +1,8 @@
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { dampFactor } from '../animation/damp';
 import { ContactShadows, Environment, Grid, Lightformer, PerformanceMonitor } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Group, Vector3, type Mesh, type PerspectiveCamera } from 'three';
+import { Fog, Group, Vector3, type Mesh, type PerspectiveCamera } from 'three';
 import { SmokeSystem, type SmokeFrame } from '../effects/smoke/SmokeSystem';
 import { jetSpeed } from '../effects/smoke/smokeMath';
 import { QUALITY_PROFILES } from '../scene/quality';
@@ -11,7 +11,8 @@ import { ParkedVehicles } from './ParkedVehicles';
 import { RampRig } from './RampRig';
 import { courseScroll } from './slalom';
 import { SlalomCourse } from './SlalomCourse';
-import { stuntInfo } from './routines';
+import { fitPortrait, type Band, type PortraitView } from './portraitFraming';
+import { STUNTS, stuntInfo, type CameraShot, type StuntId } from './routines';
 import { emitters, StuntCar } from './StuntCar';
 import { stuntRuntime } from './stuntRuntime';
 
@@ -20,56 +21,99 @@ const target = new Vector3();
 const position = new Vector3();
 const shadowGroup = new Group();
 
-/** Shots are composed for this aspect; narrower screens back off to keep the action in frame. */
+/** Shots are composed for this aspect; narrower landscape screens back off to keep the action in frame. */
 const SHOT_ASPECT = 1.5;
-/** Must match the CSS breakpoint where the stunt HUD stacks under the stage. */
+/** Must match the CSS breakpoint where the stunt HUD stacks under the stage (phones: under 768 px). */
 const STACKED_HUD_MAX_WIDTH = 767;
-/** On stacked (phone) layouts, lift the framing by this share of the height into the open band above the text. */
-const STACKED_LIFT = 0.17;
+/** Vertical field of view: the composed shots, and a wider lens for tall phone screens. */
+const FOV = 35;
+const FOV_STACKED = 50;
+/** Fog, relative to the camera's distance from its subject, so nothing in frame is ever fogged out. */
+const FOG_NEAR_AHEAD = 18;
+const FOG_FAR_BEYOND = 70;
 
-/**
- * Pull-back for a viewport aspect. Landscape fits the shot's full width
- * (distance ∝ 1/aspect). Portrait cannot fit a wide manoeuvre at a useful size,
- * so it backs off more gently and accepts cropping the far edges.
- */
-function stuntFit(aspect: number): number {
-  const r = SHOT_ASPECT / Math.max(0.1, aspect);
-  return aspect >= 1 ? Math.max(1, r) : Math.max(1, r ** 0.55);
+/** Open band of a stacked (phone) layout: between the stunt tabs and the stacked title. */
+function measureBand(height: number): Band {
+  const tabs = document.querySelector('.stunt-tabs')?.getBoundingClientRect();
+  const title = document.querySelector('.stunt-title')?.getBoundingClientRect();
+  if (!tabs || !title || title.top <= tabs.bottom) return { top: height * 0.18, bottom: height * 0.53 };
+  return { top: tabs.bottom, bottom: title.top };
 }
 
 /**
  * Cinematic camera: each routine has a camera path (routines.ts), sampled on
  * the playback clock. On a tab switch the shot crossfades from the one on
  * screen (GSAP drives `camera.blend`). Here the aim eases partly toward the
- * car, the position drifts slowly and backs off on narrow screens so the
- * whole manoeuvre stays in frame. On phones, where the title and telemetry
- * stack over the lower half, a projection offset lifts the shot into the
- * open band (an offset, not a stretch: the image stays undistorted).
+ * car, the position drifts slowly and backs off on narrower landscape screens.
+ *
+ * Phones (stacked HUD) use each routine's portrait framing instead: a viewing
+ * direction suited to a tall screen and the closest distance at which all of
+ * the routine's key points (ramp, flight apex, touchdown spots, parked
+ * vehicles…) sit inside the open band above the stacked text, which a
+ * projection offset centres optically. The camera's aspect is set to the
+ * offset frame's, so the image stays undistorted.
  */
 function CameraRig() {
   const size = useThree((s) => s.size);
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
+  const stunt = useAppStore((s) => s.stunt);
   const aspect = size.width / Math.max(1, size.height);
+  const stacked = size.width <= STACKED_HUD_MAX_WIDTH;
   const placed = useRef(false);
 
+  // The band depends on the HUD's layout (title length per routine), so re-measure on changes.
+  const [band, setBand] = useState<Band | null>(null);
   useEffect(() => {
-    if (size.width <= STACKED_HUD_MAX_WIDTH) {
-      const extra = Math.round(size.height * 2 * STACKED_LIFT);
-      // Render a taller virtual frame and show its lower part: content moves up by STACKED_LIFT × height.
-      camera.setViewOffset(size.width, size.height + extra, 0, extra, size.width, size.height);
+    if (!stacked) {
+      setBand(null);
+      return;
+    }
+    const update = () => setBand(measureBand(size.height));
+    const raf = requestAnimationFrame(update);
+    // Again once the title's entrance animation has settled.
+    const late = window.setTimeout(update, 1000);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(late);
+    };
+  }, [stacked, stunt, size.width, size.height]);
+
+  // Portrait views for every routine (cheap: a few dozen projections each).
+  const portrait = useMemo(() => {
+    if (!band) return null;
+    const views = {} as Record<StuntId, PortraitView>;
+    for (const info of STUNTS) views[info.id] = fitPortrait(info.portrait, FOV_STACKED, size.width, size.height, band);
+    return views;
+  }, [band, size.width, size.height]);
+
+  const lift = portrait ? portrait[stunt].lift : 0;
+  useEffect(() => {
+    const { width: w, height: h } = size;
+    camera.fov = portrait ? FOV_STACKED : FOV;
+    if (lift > 0) {
+      const extra = Math.round(h * 2 * lift);
+      // Render a taller virtual frame and show its lower part; matching aspect keeps pixels square.
+      camera.aspect = w / (h + extra);
+      camera.setViewOffset(w, h + extra, 0, extra, w, h);
     } else {
+      camera.aspect = w / h;
       camera.clearViewOffset();
     }
     camera.updateProjectionMatrix();
+    // Dev-only inspection handle (stripped from production builds).
+    if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__stuntCamera = camera;
     return () => {
+      camera.fov = FOV;
+      camera.aspect = w / h;
       camera.clearViewOffset();
       camera.updateProjectionMatrix();
     };
-  }, [camera, size.width, size.height]);
+  }, [camera, size, lift, portrait]);
 
-  useFrame(({ camera, clock }, delta) => {
+  useFrame(({ camera, clock, scene }, delta) => {
     const rt = stuntRuntime;
-    const shot = stuntInfo(rt.active).camera(rt.clock.t);
+    const p = portrait?.[rt.active];
+    const shot: CameraShot = p ? { position: p.position, target: p.target, follow: 0 } : stuntInfo(rt.active).camera(rt.clock.t);
     const { from, current, blend } = rt.camera;
     const b = blend.value;
     const mix = (a: number, z: number) => a + (z - a) * b;
@@ -82,9 +126,10 @@ function CameraRig() {
     current.follow = mix(from.follow, shot.follow);
 
     const c = current;
-    const fit = stuntFit(aspect);
+    // Portrait views are already fitted; only landscape shots are scaled for the aspect.
+    const fit = p ? 1 : Math.max(1, SHOT_ASPECT / aspect);
     target.set(c.tx, c.ty, c.tz).lerp(rt.shown.position, c.follow);
-    const drift = Math.sin(clock.elapsedTime * 0.15);
+    const drift = Math.sin(clock.elapsedTime * 0.15) * (p ? 0.4 : 1);
     position.set(
       c.tx + (c.px - c.tx) * fit + drift * 1.2,
       c.ty + (c.py - c.ty) * fit,
@@ -94,6 +139,12 @@ function CameraRig() {
     camera.position.lerp(position, placed.current ? dampFactor(2.5, Math.min(delta, 0.1)) : 1);
     placed.current = true;
     camera.lookAt(target);
+    // Fog starts just short of the subject and fades well beyond it, at any camera distance.
+    if (scene.fog instanceof Fog) {
+      const d = camera.position.distanceTo(target);
+      scene.fog.near = Math.max(10, d - FOG_NEAR_AHEAD);
+      scene.fog.far = d + FOG_FAR_BEYOND;
+    }
   });
   return null;
 }
@@ -196,7 +247,7 @@ export function StuntScene() {
     <Canvas
       className="scene-canvas"
       dpr={q.dpr}
-      camera={{ fov: 35, near: 0.1, far: 400, position: [27, 9, 10] }}
+      camera={{ fov: FOV, near: 0.1, far: 400, position: [27, 9, 10] }}
       gl={{ antialias: tier !== 'low', powerPreference: 'high-performance' }}
     >
       <PerformanceMonitor flipflops={4} onDecline={() => adjustAutoTier(-1)} onIncline={() => adjustAutoTier(1)} />
