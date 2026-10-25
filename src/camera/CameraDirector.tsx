@@ -13,8 +13,8 @@ import { hotspot } from '../engineering/hotspots';
 import { FOLLOW_TARGET_HEIGHT, STATE_FRAMINGS } from './stateFramings';
 
 const FRAMED_ASPECT = 1.6;
-/** Must match the CSS breakpoint where HUD panels move to the bottom. */
-const STACKED_HUD_MAX_WIDTH = 720;
+/** Must match the CSS breakpoint where HUD panels move to the bottom (phones: under 768 px). */
+const STACKED_HUD_MAX_WIDTH = 767;
 /** Engineering focus: frame a selected part with this much context around it. */
 const FOCUS_PADDING = 2.2;
 const MIN_FOCUS_RADIUS = 0.9;
@@ -169,7 +169,9 @@ export function CameraDirector() {
     }
 
     // In flight the stacked HUD splits top/bottom, so the vehicle stays centred.
-    const stackedLift = vehicleState === 'PARKED' ? 0.12 : vehicleState === 'FLIGHT' ? 0 : 0.18;
+    // Engineering docks the taller inspector at the bottom, so it lifts the car further.
+    const parkedLift = useAppStore.getState().appMode === 'engineering' ? 0.22 : 0.12;
+    const stackedLift = vehicleState === 'PARKED' ? parkedLift : vehicleState === 'FLIGHT' ? 0 : 0.18;
     const targetLift = stackedHud && !cinematic ? stackedLift : 0;
     lift.current = damp(lift.current, targetLift, 3, dt);
     // Positive Y focal offset shifts the view down, which raises the vehicle on screen.
