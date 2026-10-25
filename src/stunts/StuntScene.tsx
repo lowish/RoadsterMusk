@@ -23,7 +23,7 @@ const shadowGroup = new Group();
 /** Shots are composed for this aspect; narrower screens back off to keep the action in frame. */
 const SHOT_ASPECT = 1.5;
 /** Must match the CSS breakpoint where the stunt HUD stacks under the stage. */
-const STACKED_HUD_MAX_WIDTH = 720;
+const STACKED_HUD_MAX_WIDTH = 767;
 /** On stacked (phone) layouts, lift the framing by this share of the height into the open band above the text. */
 const STACKED_LIFT = 0.17;
 
