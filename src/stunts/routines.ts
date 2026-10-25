@@ -12,6 +12,7 @@
  * heading back); applied with Euler order YXZ (yaw, then pitch, then roll).
  */
 
+import type { PortraitFrame } from './portraitFraming';
 import { SLALOM, SLALOM_T, weave } from './slalom';
 import { CAR_HALF_HEIGHT, carOnCurve, CURVE_CAR_LENGTH, curveAt, phiAtCarDistance, radiusAt, RAMP } from './rampCurve';
 
@@ -57,6 +58,8 @@ export interface StuntInfo {
   title: string;
   brief: string;
   duration: number;
+  /** Phone framing: what must stay in view and from which side (see portraitFraming.ts). */
+  portrait: PortraitFrame;
   /** Camera path as a function of the routine clock (static shots return a constant). */
   camera: (t: number) => CameraShot;
 }
@@ -417,6 +420,16 @@ export const STUNTS: readonly StuntInfo[] = [
     brief: 'Holding position on four under-floor cold-gas jets with a slow yaw sweep.',
     duration: HOVER_T,
     camera: still({ position: [7.5, 3.4, 9.5], target: [0, HOVER_HEIGHT + 0.6, 0], follow: 0.3 }),
+    // The car hovering, with room for its smoke wash below.
+    portrait: {
+      dir: [0.62, 0.22, 0.75],
+      points: [
+        [-2.4, 0.2, -2.4],
+        [2.4, 0.2, 2.4],
+        [2.4, HOVER_HEIGHT + 1.3, -2.4],
+        [-2.4, HOVER_HEIGHT + 1.3, 2.4],
+      ],
+    },
   },
   {
     id: 'loop',
@@ -426,6 +439,19 @@ export const STUNTS: readonly StuntInfo[] = [
     brief: 'Up the J-curve ramp, off the lip on a floating ballistic arc, twisting upright, then a level, smoke-cushioned touchdown.',
     duration: RAMP_T,
     camera: rampCamera,
+    // Front three-quarter, down the ramp's length: run-up and landing spot, the lip and
+    // tower, and the top of the flight arc.
+    portrait: {
+      dir: [0.42, 0.2, -0.88],
+      points: [
+        [0, 0, -14],
+        [-2.2, 0, -12],
+        [2.2, 0, 8],
+        [0, 10.8, 7.7],
+        [0, 12.4, 12.6],
+        [0, 17.2, 1],
+      ],
+    },
   },
   {
     id: 'roll',
@@ -436,6 +462,19 @@ export const STUNTS: readonly StuntInfo[] = [
     duration: duration(ROLL_SEGMENTS),
     // Broadside on to the parked set (sedan nearest), wide enough for the whole 18 m run.
     camera: still({ position: [25, 3.4, 6], target: [0, 3.4, 0], follow: 0.1 }),
+    // Three-quarter down the run: both touchdown spots (car length included), the parked
+    // truck and sedan, and the top of the barrel roll.
+    portrait: {
+      dir: [0.6, 0.22, -0.77],
+      points: [
+        [0, 0.2, -ROLL_RUN - 2.2],
+        [0, 0.2, ROLL_RUN + 2.2],
+        [-2.8, 3.8, -2.8],
+        [2.4, 1.2, 1.9],
+        [1.2, ROLL_TOP + 2.6, 0],
+        [-1.2, ROLL_TOP + 2.6, 0],
+      ],
+    },
   },
   {
     id: 'slalom',
@@ -446,6 +485,15 @@ export const STUNTS: readonly StuntInfo[] = [
     duration: SLALOM_T,
     // High chase behind the car, looking down the course as it streams in.
     camera: still({ position: [5, 8, -17], target: [0, 0.8, 14], follow: 0.25 }),
+    // High chase: the car's full lane-to-lane swing and the course ahead.
+    portrait: {
+      dir: [0.12, 0.42, -0.9],
+      points: [
+        [-4.7, 0.2, -2.4],
+        [4.7, 1.4, 2.4],
+        [0, 0, 30],
+      ],
+    },
   },
 ];
 
