@@ -1188,7 +1188,7 @@ input {
 /* Medium widths: tighter rails                                        */
 /* ------------------------------------------------------------------ */
 
-@media (max-width: 1100px) and (min-width: 721px) {
+@media (max-width: 1100px) and (min-width: 768px) {
   :root {
     --rail-w: 260px;
   }
@@ -1203,7 +1203,7 @@ input {
 /* → camera). Panels flow in order, so real heights are respected.     */
 /* ------------------------------------------------------------------ */
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .hud {
     display: flex;
     flex-direction: column;
@@ -1531,7 +1531,7 @@ input {
   max-width: none;
 }
 
-@media (max-width: 1100px) and (min-width: 721px) {
+@media (max-width: 1100px) and (min-width: 768px) {
   .stunt-tab {
     flex-direction: column;
     gap: 4px;
@@ -1542,7 +1542,7 @@ input {
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .stunt-tabs,
   .stunt-title,
   .stunt-telemetry {
@@ -1602,7 +1602,7 @@ input {
 }
 
 /* Phones: the larger, brighter small type needs its own room. */
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .mode-tab {
     font-size: 11px;
     letter-spacing: 0.06em;
@@ -1798,7 +1798,7 @@ input {
   font-size: 13px;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .docs-overlay {
     padding: 0;
     place-items: stretch;
@@ -1935,7 +1935,7 @@ body,
 }
 
 /* Tablets and small laptops: the long header contents shrink instead of wrapping into the panels. */
-@media (max-width: 1100px) and (min-width: 721px) {
+@media (max-width: 1100px) and (min-width: 768px) {
   .mode-tab {
     padding-left: 10px;
     padding-right: 10px;
@@ -1956,7 +1956,7 @@ body,
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   /* Cinematic: caption and EXIT pinned just above the bottom letterbox, inside the safe area. */
   .hud--cinematic .cinematic-caption {
     position: absolute;
@@ -2002,10 +2002,47 @@ body,
     min-width: 44px;
     min-height: 44px;
   }
+  /* A full-size tap area that is itself invisible: only a compact numbered box shows,
+     so the markers don't cover the car on small screens. The data card names the selection. */
   .hotspot-marker {
-    /* A touch of headroom: markers are positioned on sub-pixel 3D projections. */
     min-width: 46px;
     min-height: 46px;
     align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+  }
+  .hotspot-marker .hotspot-index {
+    padding: 3px 5px;
+    border: 1px solid var(--accent);
+    background: rgba(10, 10, 10, 0.86);
+    font-size: 10px;
+  }
+  .hotspot-marker .hotspot-label,
+  .hotspot-marker:hover .hotspot-label,
+  .hotspot-marker[aria-pressed='true'] .hotspot-label {
+    display: none;
+  }
+  .hotspot-marker[aria-pressed='true'] {
+    background: transparent;
+  }
+  .hotspot-marker[aria-pressed='true'] .hotspot-index {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+}
+
+
+/* Phones: the engineering inspector docks at the bottom, above the camera bar and footer,
+   like the Showroom's console, so the car stays unobstructed at the top. */
+@media (max-width: 767px) {
+  .engineering-panel {
+    order: 5;
+    margin-top: auto;
+    border-top: 1px solid var(--line);
+    border-bottom: 0;
+  }
+  .engineering-panel .panel-body {
+    max-height: 30vh;
   }
 }
