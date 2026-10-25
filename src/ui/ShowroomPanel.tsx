@@ -35,7 +35,7 @@ export function ShowroomPanel() {
   const setPaint = useAppStore((s) => s.setPaint);
   const setFinish = useAppStore((s) => s.setFinish);
   const setRim = useAppStore((s) => s.setRim);
-  const [open, setOpen] = useState(() => window.innerWidth >= 720);
+  const [open, setOpen] = useState(() => window.innerWidth >= 768);
 
   if (!slots) return null;
   const hasPaint = !!slots.paint?.length;

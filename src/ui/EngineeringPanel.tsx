@@ -100,7 +100,7 @@ export function EngineeringPanel() {
   const selectPart = useAppStore((s) => s.selectPart);
   const selectHotspot = useAppStore((s) => s.selectHotspot);
   const setHoveredPart = useAppStore((s) => s.setHoveredPart);
-  const [open, setOpen] = useState(() => window.innerWidth >= 720);
+  const [open, setOpen] = useState(() => window.innerWidth >= 768);
   const hasPaintMask = useAppStore((s) => (s.vehicle?.materialSlots.paint ?? []).some(isPaintMaskMaterial));
 
   const modelParts = reports.filter((r) => !r.concept);
